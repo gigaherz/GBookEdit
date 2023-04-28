@@ -11,18 +11,19 @@ using System.Xml.Linq;
 
 namespace GBookEdit.WPF
 {
-    public class FlexToBook
+    public class FlowToBook
     {
         public static readonly TextDecorationCollection NoDecorations = new();
         public static readonly TextDecorationCollection UnderlineAndStrikethrough = new(TextDecorations.Underline.Concat(TextDecorations.Strikethrough));
 
         public static readonly float DefaultFontSize = 12.0f;
 
-        public static XmlDocument ProcessDoc(FlowDocument fdoc)
+        public static XmlDocument ProcessDoc(FlowDocument fdoc, string title)
         {
             var doc = new XmlDocument();
 
             var root = doc.CreateElement("book");
+            root.SetAttribute("title", title);
 
             doc.AppendChild(root);
 
@@ -31,8 +32,11 @@ namespace GBookEdit.WPF
                 root.SetAttribute("fontSize", (fdoc.FontSize / DefaultFontSize).ToString());
             }
 
+            var chapter = doc.CreateElement("chapter");
+            root.AppendChild(chapter);
+
             var section = doc.CreateElement("section"); // TODO: support multiple actual <section>s
-            root.AppendChild(section);
+            chapter.AppendChild(section);
 
 
             foreach (var block in fdoc.Blocks)
@@ -155,7 +159,7 @@ namespace GBookEdit.WPF
                 return true;
             if (current.IsBold != parent.IsBold)
                 return true;
-            if (current.IsItalic != parent.IsItalic)
+            if (current.IsItalics != parent.IsItalics)
                 return true;
             if (current.IsUnderline != parent.IsUnderline)
                 return true;
@@ -176,9 +180,9 @@ namespace GBookEdit.WPF
             {
                 tag.SetAttribute("bold", current.IsBold ? "true": "false");
             }
-            if (current.IsItalic != parent.IsItalic)
+            if (current.IsItalics != parent.IsItalics)
             {
-                tag.SetAttribute("italic", current.IsItalic ? "true" : "false");
+                tag.SetAttribute("italics", current.IsItalics ? "true" : "false");
             }
             if (current.IsUnderline != parent.IsUnderline)
             {
@@ -208,7 +212,7 @@ namespace GBookEdit.WPF
             double FontSize { get; }
             FontFamily FontFamily { get; }
             bool IsBold { get; }
-            bool IsItalic { get; }
+            bool IsItalics { get; }
             bool IsUnderline { get; }
             bool IsStrikethrough { get; }
             Color Color { get; }
@@ -236,7 +240,7 @@ namespace GBookEdit.WPF
             public double FontSize => Document.FontSize;
             public FontFamily FontFamily => Document.FontFamily;
             public bool IsBold => Document.FontWeight >= FontWeights.Bold;
-            public bool IsItalic => Document.FontStyle == FontStyles.Italic;
+            public bool IsItalics => Document.FontStyle == FontStyles.Italic;
             public bool IsUnderline => false;
             public bool IsStrikethrough => false;
             public Color Color => (Document.Foreground is SolidColorBrush b ? b.Color : Colors.Black);
@@ -247,7 +251,7 @@ namespace GBookEdit.WPF
             public double FontSize => Element.FontSize;
             public FontFamily FontFamily => Element.FontFamily;
             public bool IsBold => Element.FontWeight >= FontWeights.Bold;
-            public bool IsItalic => Element.FontStyle == FontStyles.Italic;
+            public bool IsItalics => Element.FontStyle == FontStyles.Italic;
             public bool IsUnderline => Element.TextDecorations == TextDecorations.Underline || Element.TextDecorations == UnderlineAndStrikethrough;
             public bool IsStrikethrough => Element.TextDecorations == TextDecorations.Strikethrough || Element.TextDecorations == UnderlineAndStrikethrough;
             public Color Color => (Element.Foreground is SolidColorBrush b ? b.Color : Colors.Black);
@@ -258,7 +262,7 @@ namespace GBookEdit.WPF
             public double FontSize => Element.FontSize;
             public FontFamily FontFamily => Element.FontFamily;
             public bool IsBold => Element.FontWeight >= FontWeights.Bold;
-            public bool IsItalic => Element.FontStyle == FontStyles.Italic;
+            public bool IsItalics => Element.FontStyle == FontStyles.Italic;
             public bool IsUnderline => false;
             public bool IsStrikethrough => false;
             public Color Color => (Element.Foreground is SolidColorBrush b ? b.Color : Colors.Black);

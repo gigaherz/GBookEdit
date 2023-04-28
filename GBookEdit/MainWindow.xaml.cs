@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,11 +26,20 @@ namespace GBookEdit.WPF
     {
         private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
 
+        private string? currentFileName;
+
+        private bool modified;
+
+        private bool Modified()
+        {
+            return modified; // TODO: maybe check if the document is different from the last saved version?
+        }
+
         public MainWindow()
         {
             InitializeComponent();
 
-            rtbDocument.FontSize = FlexToBook.DefaultFontSize;
+            rtbDocument.FontSize = FlowToBook.DefaultFontSize;
 
             timer.Tick += UpdatePreview;
         }
@@ -38,12 +48,13 @@ namespace GBookEdit.WPF
         {
             timer.Stop();
             timer.Start();
+            modified = true;
         }
 
         private void UpdatePreview(object? sender, EventArgs e)
         {
             var fdoc = rtbDocument.Document;
-            var xml = FlexToBook.ProcessDoc(fdoc);
+            var xml = FlowToBook.ProcessDoc(fdoc, currentFileName != null ? System.IO.Path.GetFileNameWithoutExtension(currentFileName) : "Untitled");
             var sb = new StringBuilder();
             using (var xw = XmlWriter.Create(sb, new XmlWriterSettings() {
                 Indent = true,
@@ -56,12 +67,6 @@ namespace GBookEdit.WPF
             tbPreview.Text = sb.ToString();
         }
 
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void cbFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
@@ -69,27 +74,27 @@ namespace GBookEdit.WPF
 
         private void btnNew_Click(object sender, RoutedEventArgs e)
         {
-
+            mnuNew_Click(sender, e);
         }
 
         private void btnOpen_Click(object sender, RoutedEventArgs e)
         {
-
+            mnuOpen_Click(sender, e);
         }
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
-
+            mnuSave_Click(sender, e);
         }
 
         private void btnUndo_Click(object sender, RoutedEventArgs e)
         {
-
+            rtbDocument.Undo();
         }
 
         private void btnRedo_Click(object sender, RoutedEventArgs e)
         {
-
+            rtbDocument.Redo();
         }
 
         private void tglBold_Click(object sender, RoutedEventArgs e)
@@ -119,7 +124,7 @@ namespace GBookEdit.WPF
             var sel = rtbDocument.Selection;
             var existing = GetRunsInRange(sel).Aggregate(((bool?)null, false), (acc, e) => {
                 var val = e.GetPropertyValue(Inline.TextDecorationsProperty);
-                var hasUnderline = val == TextDecorations.Underline || val == FlexToBook.UnderlineAndStrikethrough;
+                var hasUnderline = val == TextDecorations.Underline || val == FlowToBook.UnderlineAndStrikethrough;
                 if (!acc.Item2)
                     return (hasUnderline, true);
                 return ((val == null || hasUnderline != acc.Item1 ? null : acc.Item1), true);
@@ -127,14 +132,14 @@ namespace GBookEdit.WPF
             var set = !(existing.Item1 == true);
             foreach (var range in GetRunsInRange(sel))
             {
-                var current = range.GetPropertyValue(Inline.TextDecorationsProperty) as TextDecorationCollection ?? FlexToBook.NoDecorations;
+                var current = range.GetPropertyValue(Inline.TextDecorationsProperty) as TextDecorationCollection ?? FlowToBook.NoDecorations;
                 TextDecorationCollection toApply;
                 if (set == true)
                 {
                     if (current == TextDecorations.Underline)
                         continue;
                     if (current == TextDecorations.Strikethrough)
-                        toApply = FlexToBook.UnderlineAndStrikethrough;
+                        toApply = FlowToBook.UnderlineAndStrikethrough;
                     else
                         toApply = TextDecorations.Underline;
                 }
@@ -142,10 +147,10 @@ namespace GBookEdit.WPF
                 {
                     if (current.Count == 0)
                         continue;
-                    if (current == FlexToBook.UnderlineAndStrikethrough)
+                    if (current == FlowToBook.UnderlineAndStrikethrough)
                         toApply = TextDecorations.Strikethrough;
                     else
-                        toApply = FlexToBook.NoDecorations;
+                        toApply = FlowToBook.NoDecorations;
                 }
                 range.ApplyPropertyValue(Inline.TextDecorationsProperty, toApply);
             }
@@ -158,7 +163,7 @@ namespace GBookEdit.WPF
             var sel = rtbDocument.Selection;
             var existing = GetRunsInRange(sel).Aggregate(((bool?)null, false), (acc, e) => {
                 var val = e.GetPropertyValue(Inline.TextDecorationsProperty);
-                var hasStrikethrough = val == TextDecorations.Strikethrough || val == FlexToBook.UnderlineAndStrikethrough;
+                var hasStrikethrough = val == TextDecorations.Strikethrough || val == FlowToBook.UnderlineAndStrikethrough;
                 if (!acc.Item2)
                     return (hasStrikethrough, true);
                 return ((val == null || hasStrikethrough != acc.Item1 ? null : acc.Item1), true);
@@ -166,14 +171,14 @@ namespace GBookEdit.WPF
             var set = !(existing.Item1 == true);
             foreach (var range in GetRunsInRange(sel))
             {
-                var current = range.GetPropertyValue(Inline.TextDecorationsProperty) as TextDecorationCollection ?? FlexToBook.NoDecorations;
+                var current = range.GetPropertyValue(Inline.TextDecorationsProperty) as TextDecorationCollection ?? FlowToBook.NoDecorations;
                 TextDecorationCollection toApply;
                 if (set == true)
                 {
                     if (current == TextDecorations.Strikethrough)
                         continue;
                     if (current == TextDecorations.Underline)
-                        toApply = FlexToBook.UnderlineAndStrikethrough;
+                        toApply = FlowToBook.UnderlineAndStrikethrough;
                     else
                         toApply = TextDecorations.Strikethrough;
                 }
@@ -181,10 +186,10 @@ namespace GBookEdit.WPF
                 {
                     if (current.Count == 0)
                         continue;
-                    if (current == FlexToBook.UnderlineAndStrikethrough)
+                    if (current == FlowToBook.UnderlineAndStrikethrough)
                         toApply = TextDecorations.Underline;
                     else
-                        toApply = FlexToBook.NoDecorations;
+                        toApply = FlowToBook.NoDecorations;
                 }
                 range.ApplyPropertyValue(Inline.TextDecorationsProperty, toApply);
             }
@@ -205,7 +210,7 @@ namespace GBookEdit.WPF
                 foreach (var range in GetRunsInRange(selection))
                 {
                     fontSize = range.GetPropertyValue(TextElement.FontSizeProperty);
-                    if (fontSize == DependencyProperty.UnsetValue) fontSize = FlexToBook.DefaultFontSize;
+                    if (fontSize == DependencyProperty.UnsetValue) fontSize = FlowToBook.DefaultFontSize;
                     range.ApplyPropertyValue(TextElement.FontSizeProperty, NextFontSizeDown(fontSize));
                 }
             }
@@ -226,7 +231,7 @@ namespace GBookEdit.WPF
                 foreach (var range in GetRunsInRange(selection))
                 {
                     fontSize = range.GetPropertyValue(TextElement.FontSizeProperty);
-                    if (fontSize == DependencyProperty.UnsetValue) fontSize = FlexToBook.DefaultFontSize;
+                    if (fontSize == DependencyProperty.UnsetValue) fontSize = FlowToBook.DefaultFontSize;
                     range.ApplyPropertyValue(TextElement.FontSizeProperty, NextFontSizeUp(fontSize));
                 }
             }
@@ -236,17 +241,17 @@ namespace GBookEdit.WPF
 
         private static double NextFontSizeDown(object fontSize)
         {
-            return Math.Max(1, Convert.ToDouble(fontSize ?? FlexToBook.DefaultFontSize) - 1);
+            return Math.Max(1, Convert.ToDouble(fontSize ?? FlowToBook.DefaultFontSize) - 1);
         }
 
         private static double NextFontSizeUp(object fontSize)
         {
-            return Math.Max(1, Convert.ToDouble(fontSize ?? FlexToBook.DefaultFontSize) + 1);
+            return Math.Max(1, Convert.ToDouble(fontSize ?? FlowToBook.DefaultFontSize) + 1);
         }
 
         private void cbFontSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            rtbDocument?.Selection?.ApplyPropertyValue(TextElement.FontSizeProperty, Convert.ToDouble((cbFontSize.SelectedItem as ComboBoxItem)?.Content ?? FlexToBook.DefaultFontSize));
+            rtbDocument?.Selection?.ApplyPropertyValue(TextElement.FontSizeProperty, Convert.ToDouble((cbFontSize.SelectedItem as ComboBoxItem)?.Content ?? FlowToBook.DefaultFontSize));
         }
 
         private void ddColor_Click(object sender, RoutedEventArgs e)
@@ -357,6 +362,116 @@ namespace GBookEdit.WPF
             else if (e is Block b) return b.NextBlock;
             else if (e is ListItem l) return l.NextListItem;
             else throw new NotImplementedException("Unimplemented parent type " + e.GetType().Name);
+        }
+
+        private void mnuNew_Click(object sender, RoutedEventArgs e)
+        {
+            if (Modified())
+            {
+                var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    mnuSave_Click(sender, e);
+                }
+                else if (result == MessageBoxResult.Cancel)
+                {
+                    return;
+                }
+            }
+            rtbDocument.Document.Blocks.Clear();
+            currentFileName = null;
+            modified = false;
+        }
+
+        private void mnuOpen_Click(object sender, RoutedEventArgs e)
+        {
+            if (Modified())
+            {
+                var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    mnuSave_Click(sender, e);
+                }
+                else if (result == MessageBoxResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            var dlg = new OpenFileDialog
+            {
+                Filter = "Guidebook files (*.xml)|*.xml|All files (*.*)|*.*",
+                AddExtension = true,
+                Multiselect = false,
+                Title = "Open Guidebook"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                using (var reader = XmlReader.Create(dlg.FileName))
+                {
+                    //doc = (FlowDocument)XamlReader.Load(reader);
+                    var doc = BookToFlow.Load(reader);
+                    rtbDocument.Document = doc;
+                }
+            }
+        }
+
+        private void mnuSave_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentFileName == null)
+            {
+                mnuSaveAs_Click(sender, e);
+                return;
+            }
+
+            var fdoc = rtbDocument.Document;
+            var xml = FlowToBook.ProcessDoc(fdoc, System.IO.Path.GetFileNameWithoutExtension(currentFileName));
+            using (var xw = XmlWriter.Create(currentFileName, new XmlWriterSettings()
+            {
+                Indent = true,
+                IndentChars = "  ",
+                NewLineChars = Environment.NewLine,
+            }))
+            {
+                xml.WriteTo(xw);
+                modified = false;
+            }
+        }
+
+        private void mnuSaveAs_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new SaveFileDialog
+            {
+                Filter = "Guidebook files (*.xml)|*.xml|All files (*.*)|*.*",
+                AddExtension = true,
+                Title = "Save Guidebook"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                currentFileName = dlg.FileName;
+                mnuSave_Click(sender, e);
+            }
+        }
+
+        private void mnuExit_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (Modified())
+            {
+                var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    mnuSave_Click(sender, new RoutedEventArgs());
+                }
+                else if (result == MessageBoxResult.Cancel)
+                {
+                    return;
+                }
+            }
         }
     }
 }
