@@ -410,9 +410,32 @@ namespace GBookEdit.WPF
                 using (var reader = XmlReader.Create(dlg.FileName))
                 {
                     //doc = (FlowDocument)XamlReader.Load(reader);
-                    var doc = BookToFlow.Load(reader);
+                    var doc = BookToFlow.Load(reader, out var warnings, out var errors);
                     rtbDocument.Document = doc;
+
+                    if (errors.Count > 0)
+                    {
+                        var sb = new StringBuilder();
+                        sb.AppendLine("The following errors were encountered while loading the file:");
+                        foreach (var err in errors)
+                        {
+                            sb.AppendLine(err.ToString());
+                        }
+                        MessageBox.Show(sb.ToString(), "Errors", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    else if (warnings.Count > 0)
+                    {
+                        var sb = new StringBuilder();
+                        sb.AppendLine("The following warnings were encountered while loading the file:");
+                        foreach (var warn in warnings)
+                        {
+                            sb.AppendLine(warn.ToString());
+                        }
+                        MessageBox.Show(sb.ToString(), "Warnings", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
                 }
+                modified = false;
+                currentFileName = dlg.FileName;
             }
         }
 
