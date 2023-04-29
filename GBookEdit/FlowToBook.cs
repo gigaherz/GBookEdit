@@ -247,6 +247,16 @@ namespace GBookEdit.WPF
             throw new ArgumentException("Object is not a FlowDocument, TextElement, or Inline. Cannot wrap " + e.GetType(), nameof(e));
         }
 
+        private static bool HasUnderline(TextDecorationCollection textDecorations)
+        {
+            return textDecorations.Any(td => td.Location == TextDecorationLocation.Underline);
+        }
+
+        private static bool HasStrikethrough(TextDecorationCollection textDecorations)
+        {
+            return textDecorations.Any(td => td.Location == TextDecorationLocation.Strikethrough);
+        }
+
         private readonly record struct WrapFlowDocument(FlowDocument Document) : IFormatDescriber
         {
             public double FontSize => Document.FontSize;
@@ -265,8 +275,8 @@ namespace GBookEdit.WPF
             public FontFamily FontFamily => Element.FontFamily;
             public bool IsBold => Element.FontWeight >= FontWeights.Bold;
             public bool IsItalics => Element.FontStyle == FontStyles.Italic;
-            public bool IsUnderline => Element.TextDecorations == TextDecorations.Underline || Element.TextDecorations == UnderlineAndStrikethrough;
-            public bool IsStrikethrough => Element.TextDecorations == TextDecorations.Strikethrough || Element.TextDecorations == UnderlineAndStrikethrough;
+            public bool IsUnderline => HasUnderline(Element.TextDecorations);
+            public bool IsStrikethrough => HasStrikethrough(Element.TextDecorations);
             public Color Color => (Element.Foreground is SolidColorBrush b ? b.Color : Colors.Black);
             public TextAlignment Align => Wrap(Element.Parent).Align;
         }

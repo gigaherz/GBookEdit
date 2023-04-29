@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Threading;
 using System.Xml;
 
@@ -19,9 +21,10 @@ namespace GBookEdit.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(500) };
+        private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(250) };
 
         private string? currentFileName;
+        private string titleSuffix;
 
         private bool modified;
 
@@ -34,9 +37,29 @@ namespace GBookEdit.WPF
         {
             InitializeComponent();
 
-            rtbDocument.FontSize = FlowToBook.DefaultFontSize;
+            var appname = Assembly.GetExecutingAssembly().GetName().Name?.ToString() ?? "GBookEdit";
+            var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0";
+            titleSuffix = appname + " " + version;
+
+            rtbDocument.Document.FontSize = FlowToBook.DefaultFontSize;
+            rtbDocument.Document.FontFamily = new FontFamily(new Uri("pack://application:,,,/"), "./Fonts/#Minecraft");
+
+            foreach (FontFamily fontFamily in Fonts.GetFontFamilies(new Uri("pack://application:,,,/"), "./Fonts/"))
+            {
+                // Perform action.
+                var t = fontFamily;
+            }
 
             timer.Tick += UpdatePreview;
+
+            modified = false;
+
+            UpdateTitle();
+        }
+
+        private void UpdateTitle()
+        {
+            Title = (currentFileName != null ? System.IO.Path.GetFileName(currentFileName) : "(Untitled)") + (Modified() ? "*" : "") + " - " + titleSuffix;
         }
 
         private void rtbDocument_TextChanged(object sender, RoutedEventArgs e)
@@ -459,6 +482,7 @@ namespace GBookEdit.WPF
             rtbDocument.EndChange();
             currentFileName = null;
             modified = false;
+            UpdateTitle();
         }
 
         private void mnuOpen_Click(object sender, RoutedEventArgs e)
@@ -528,6 +552,7 @@ namespace GBookEdit.WPF
                 }
                 modified = false;
                 currentFileName = dlg.FileName;
+                UpdateTitle();
             }
         }
 
@@ -550,6 +575,7 @@ namespace GBookEdit.WPF
             {
                 xml.WriteTo(xw);
                 modified = false;
+                UpdateTitle();
             }
         }
 
