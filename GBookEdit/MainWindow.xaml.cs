@@ -53,6 +53,37 @@ namespace GBookEdit.WPF
 
         private void UpdatePreview(object? sender, EventArgs e)
         {
+#if SHOW_XAML_IN_PREVIEW
+            var fdoc = rtbDocument.Document;
+
+            var range = new TextRange(fdoc.ContentStart, fdoc.ContentEnd);
+
+            using (var ms = new MemoryStream())
+            {
+
+                range.Save(ms, DataFormats.Xaml, true);
+
+                ms.Position = 0;
+
+                using (var sr = XmlReader.Create(ms))
+                {
+                    var document = new XmlDocument();
+                    document.Load(sr);
+                    var sb = new StringBuilder();
+                    using (var xw = XmlWriter.Create(sb, new XmlWriterSettings()
+                    {
+                        Indent = true,
+                        IndentChars = "  ",
+                        NewLineChars = Environment.NewLine,
+                    }))
+                    {
+                        document.WriteTo(xw);
+                    }
+                    tbPreview.Text = sb.ToString();
+                }
+
+            }
+#else
             var fdoc = rtbDocument.Document;
             var xml = FlowToBook.ProcessDoc(fdoc, currentFileName != null ? System.IO.Path.GetFileNameWithoutExtension(currentFileName) : "Untitled");
             var sb = new StringBuilder();
@@ -65,6 +96,7 @@ namespace GBookEdit.WPF
                 xml.WriteTo(xw);
             }
             tbPreview.Text = sb.ToString();
+#endif
         }
 
         private void cbFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -97,7 +129,54 @@ namespace GBookEdit.WPF
             rtbDocument.Redo();
         }
 
-        private void tglBold_Click(object sender, RoutedEventArgs e)
+        private void btnCut_Click(object sender, RoutedEventArgs e)
+        {
+            rtbDocument.Cut();
+        }
+
+        private void btnCopy_Click(object sender, RoutedEventArgs e)
+        {
+            rtbDocument.Copy();
+        }
+
+        private void btnPaste_Click(object sender, RoutedEventArgs e)
+        {
+            rtbDocument.Paste();
+        }
+
+        private void btnAlignLeft_Click(object sender, RoutedEventArgs e)
+        {
+            var sel = rtbDocument.Selection;
+            sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Left);
+            rtbDocument_SelectionChanged(sender, e);
+            rtbDocument_TextChanged(sender, e);
+        }
+
+        private void btnAlignCenter_Click(object sender, RoutedEventArgs e)
+        {
+            var sel = rtbDocument.Selection;
+            sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Center);
+            rtbDocument_SelectionChanged(sender, e);
+            rtbDocument_TextChanged(sender, e);
+        }
+
+        private void btnAlignRight_Click(object sender, RoutedEventArgs e)
+        {
+            var sel = rtbDocument.Selection;
+            sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Right);
+            rtbDocument_SelectionChanged(sender, e);
+            rtbDocument_TextChanged(sender, e);
+        }
+
+        private void btnAlignJustified_Click(object sender, RoutedEventArgs e)
+        {
+            var sel = rtbDocument.Selection;
+            sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Justify);
+            rtbDocument_SelectionChanged(sender, e);
+            rtbDocument_TextChanged(sender, e);
+        }
+
+        private void btnBold_Click(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             sel.ApplyPropertyValue(TextElement.FontWeightProperty, 
@@ -108,7 +187,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void tglItalics_Click(object sender, RoutedEventArgs e)
+        private void btnItalics_Click(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             sel.ApplyPropertyValue(TextElement.FontStyleProperty, 
@@ -119,7 +198,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void tglUnderline_Click(object sender, RoutedEventArgs e)
+        private void btnUnderline_Click(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             var existing = GetRunsInRange(sel).Aggregate(((bool?)null, false), (acc, e) => {
@@ -256,7 +335,6 @@ namespace GBookEdit.WPF
 
         private void ddColor_Click(object sender, RoutedEventArgs e)
         {
-
         }
 
         private void rtbDocument_SelectionChanged(object sender, RoutedEventArgs e)
@@ -378,7 +456,9 @@ namespace GBookEdit.WPF
                     return;
                 }
             }
+            rtbDocument.BeginChange();
             rtbDocument.Document.Blocks.Clear();
+            rtbDocument.EndChange();
             currentFileName = null;
             modified = false;
         }
@@ -410,8 +490,9 @@ namespace GBookEdit.WPF
                 using (var reader = XmlReader.Create(dlg.FileName))
                 {
                     //doc = (FlowDocument)XamlReader.Load(reader);
-                    var doc = BookToFlow.Load(reader, out var warnings, out var errors);
-                    rtbDocument.Document = doc;
+                    rtbDocument.BeginChange();
+                    BookToFlow.Load(rtbDocument.Document, reader, out var warnings, out var errors);
+                    rtbDocument.EndChange();
 
                     if (errors.Count > 0)
                     {
@@ -507,6 +588,26 @@ namespace GBookEdit.WPF
                     return;
                 }
             }
+        }
+
+        private void btnClearFormatting_Click(object sender, RoutedEventArgs e)
+        {
+            rtbDocument.Selection.ClearAllProperties();
+        }
+
+        private void mnuCut_Click(object sender, RoutedEventArgs e)
+        {
+            rtbDocument.Cut();
+        }
+
+        private void mnuCopy_Click(object sender, RoutedEventArgs e)
+        {
+            rtbDocument.Copy();
+        }
+
+        private void mnuPaste_Click(object sender, RoutedEventArgs e)
+        {
+            rtbDocument.Paste();
         }
     }
 }

@@ -1923,6 +1923,104 @@
     </DrawingGroup>
   </DrawingGroup>
   <DrawingImage x:Key="edit_findDrawingImage" Drawing="{StaticResource edit_findDrawingGroup}" />
+  <Geometry x:Key="format_justify_fillGeometry1">F1 M48,48z M0,0z M-219.61876,-150.68038C-219.61876,-150.68038 -219.61876,327.65041 -219.61876,327.65041 -76.744594,328.55086 125.78146,220.48075 125.78138,88.454235 125.78138,-43.572302 -33.655436,-150.68036 -219.61876,-150.68038z</Geometry>
+  <Geometry x:Key="format_justify_fillGeometry2">F1 M48,48z M0,0z M-1559.2523,-150.68038C-1559.2523,-150.68038 -1559.2523,327.65041 -1559.2523,327.65041 -1702.1265,328.55086 -1904.6525,220.48075 -1904.6525,88.454235 -1904.6525,-43.572302 -1745.2157,-150.68036 -1559.2523,-150.68038z</Geometry>
+  <DrawingGroup x:Key="format_justify_fillDrawingGroup" ClipGeometry="M0,0 V48 H48 V0 H0 Z">
+    <DrawingGroup.Transform>
+      <TranslateTransform X="1904.6524658203125" Y="150.6969" />
+    </DrawingGroup.Transform>
+    <DrawingGroup Opacity="1">
+      <DrawingGroup Opacity="1" Transform="0.02330573,0,0,0.01227058,44.47891,44.41691">
+        <GeometryDrawing>
+          <GeometryDrawing.Brush>
+            <LinearGradientBrush StartPoint="302.85715,366.64789" EndPoint="302.85715,609.50507" MappingMode="Absolute" SpreadMethod="Pad" Opacity="0.40206185" Transform="2.774389,0,0,1.969706,-1892.179,-872.8854">
+              <GradientStop Color="#00000000" Offset="0" />
+              <GradientStop Color="#FF000000" Offset="0.5" />
+              <GradientStop Color="#00000000" Offset="1" />
+            </LinearGradientBrush>
+          </GeometryDrawing.Brush>
+          <GeometryDrawing.Geometry>
+            <RectangleGeometry RadiusX="0" RadiusY="0" Rect="-1559.2523,-150.6969,1339.6335,478.3572" />
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="{StaticResource format_justify_fillGeometry1}">
+          <GeometryDrawing.Brush>
+            <RadialGradientBrush Center="605.71429,486.64789" RadiusX="117.14286" RadiusY="117.14286" GradientOrigin="605.71429,486.64789" MappingMode="Absolute" SpreadMethod="Pad" Opacity="0.40206185" Transform="2.774389,0,0,1.969706,-1891.633,-872.8854">
+              <GradientStop Color="#FF000000" Offset="0" />
+              <GradientStop Color="#00000000" Offset="1" />
+            </RadialGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+        <GeometryDrawing Geometry="{StaticResource format_justify_fillGeometry2}">
+          <GeometryDrawing.Brush>
+            <RadialGradientBrush Center="605.71429,486.64789" RadiusX="117.14286" RadiusY="117.14286" GradientOrigin="605.71429,486.64789" MappingMode="Absolute" SpreadMethod="Pad" Opacity="0.40206185" Transform="-2.774389,0,0,1.969706,112.7623,-872.8854">
+              <GradientStop Color="#FF000000" Offset="0" />
+              <GradientStop Color="#00000000" Offset="1" />
+            </RadialGradientBrush>
+          </GeometryDrawing.Brush>
+        </GeometryDrawing>
+      </DrawingGroup>
+      <GeometryDrawing>
+        <GeometryDrawing.Brush>
+          <LinearGradientBrush StartPoint="20.794008,18.378813" EndPoint="35.596001,39.60046" MappingMode="Absolute" SpreadMethod="Pad" Opacity="1" Transform="1.342704,0,0,1.235378,-8.219611,-6.577189">
+            <GradientStop Color="#FFF8F8F7" Offset="0" />
+            <GradientStop Color="#FFE8E8E8" Offset="0.59928655999999991" />
+            <GradientStop Color="#FFE2E2DE" Offset="1" />
+          </LinearGradientBrush>
+        </GeometryDrawing.Brush>
+        <GeometryDrawing.Pen>
+          <Pen Brush="#FF888A85" Thickness="0.99999976" StartLineCap="Flat" EndLineCap="Flat" LineJoin="Miter" />
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry>
+          <RectangleGeometry RadiusX="0.5665" RadiusY="0.5665" Rect="4.5016,1.4969,38.9968,45.0031" />
+        </GeometryDrawing.Geometry>
+      </GeometryDrawing>
+      <DrawingGroup Transform="-1,0,0,1,0,0">
+        <GeometryDrawing Brush="#FF999999">
+          <GeometryDrawing.Geometry>
+            <RectangleGeometry RadiusX="0" RadiusY="0" Rect="-39,10,30,2" />
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+      </DrawingGroup>
+      <DrawingGroup Transform="-1,0,0,1,0,0">
+        <GeometryDrawing Brush="#FF999999">
+          <GeometryDrawing.Geometry>
+            <RectangleGeometry RadiusX="0" RadiusY="0" Rect="-39,16,30,2" />
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+      </DrawingGroup>
+      <DrawingGroup Transform="-1,0,0,1,0,0">
+        <GeometryDrawing Brush="#FF999999">
+          <GeometryDrawing.Geometry>
+            <RectangleGeometry RadiusX="0" RadiusY="0" Rect="-39,22,30,2" />
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+      </DrawingGroup>
+      <DrawingGroup Transform="-1,0,0,1,0,0">
+        <GeometryDrawing Brush="#FF999999">
+          <GeometryDrawing.Geometry>
+            <RectangleGeometry RadiusX="0" RadiusY="0" Rect="-39,28,30,2" />
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+      </DrawingGroup>
+      <DrawingGroup Transform="-1,0,0,1,0,0">
+        <GeometryDrawing Brush="#FF999999">
+          <GeometryDrawing.Geometry>
+            <RectangleGeometry RadiusX="0" RadiusY="0" Rect="-39,34,30,2" />
+          </GeometryDrawing.Geometry>
+        </GeometryDrawing>
+      </DrawingGroup>
+      <GeometryDrawing>
+        <GeometryDrawing.Pen>
+          <Pen Brush="#FFFFFFFF" Thickness="0.99999982" StartLineCap="Flat" EndLineCap="Flat" LineJoin="Miter" />
+        </GeometryDrawing.Pen>
+        <GeometryDrawing.Geometry>
+          <RectangleGeometry RadiusX="0" RadiusY="0" Rect="5.4997,2.4997,37.0256,43.0223" />
+        </GeometryDrawing.Geometry>
+      </GeometryDrawing>
+    </DrawingGroup>
+  </DrawingGroup>
+  <DrawingImage x:Key="format_justify_fillDrawingImage" Drawing="{StaticResource format_justify_fillDrawingGroup}" />
   <Geometry x:Key="document_save_asGeometry1">F1 M48,48z M0,0z M-219.61876,-150.68038C-219.61876,-150.68038 -219.61876,327.65041 -219.61876,327.65041 -76.744594,328.55086 125.78146,220.48075 125.78138,88.454235 125.78138,-43.572302 -33.655436,-150.68036 -219.61876,-150.68038z</Geometry>
   <Geometry x:Key="document_save_asGeometry2">F1 M48,48z M0,0z M-1559.2523,-150.68038C-1559.2523,-150.68038 -1559.2523,327.65041 -1559.2523,327.65041 -1702.1265,328.55086 -1904.6525,220.48075 -1904.6525,88.454235 -1904.6525,-43.572302 -1745.2157,-150.68036 -1559.2523,-150.68038z</Geometry>
   <Geometry x:Key="document_save_asGeometry3">F0 M48,48z M0,0z M11.28569,13.087628C10.66069,13.087628 10.254441,13.377808 10.004442,13.931381 10.004441,13.931381 3.5356915,31.034938 3.5356915,31.034938 3.5356915,31.034938 3.2856915,31.706497 3.2856915,32.816188 3.2856915,32.816188 3.2856915,42.466156 3.2856915,42.466156 3.2856915,43.548769 3.943477,44.091158 4.9419415,44.091156L43.50444,44.091156C44.489293,44.091156,45.09819,43.372976,45.09819,42.247406L45.09819,32.597438C45.09819,32.597438,45.204153,31.827015,45.00444,31.284938L38.28569,14.087631C38.101165,13.575725,37.648785,13.099533,37.16069,13.087628L11.28569,13.087628z</Geometry>

@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" ResizeMode="CanResizeWithGrip" Closing="Window_Closing">
+        Title="MainWindow" Height="600" Width="1024" ResizeMode="CanResizeWithGrip" Closing="Window_Closing">
     <Window.Resources>
         <ResourceDictionary Source="TangoIcons.xaml" />
     </Window.Resources>
@@ -30,9 +30,9 @@
                 <MenuItem x:Name="mnuExit" Header="Exit" Click="mnuExit_Click" />
             </MenuItem>
             <MenuItem Header="Edit">
-                <MenuItem Header="Cut" />
-                <MenuItem Header="Copy" />
-                <MenuItem Header="Paste" />
+                <MenuItem x:Name="mnuCut" Header="Cut" Click="mnuCut_Click" />
+                <MenuItem x:Name="mnuCopy" Header="Copy" Click="mnuCopy_Click" />
+                <MenuItem x:Name="mnuPaste" Header="Paste" Click="mnuPaste_Click" />
             </MenuItem>
             <MenuItem Header="Format">
                 <MenuItem Header="Bold" />
@@ -66,18 +66,46 @@
                 <Image Width="18" Height="18" Source="{StaticResource edit_redoDrawingImage}" />
             </Button>
             <Separator/>
-            <Button x:Name="btnBold" Click="tglBold_Click">
+            <Button x:Name="btnCut" Click="btnCut_Click">
+                <Image Width="18" Height="18" Source="{StaticResource edit_cutDrawingImage}" />
+            </Button>
+            <Button x:Name="btnCopy" Click="btnCopy_Click">
+                <Image Width="18" Height="18" Source="{StaticResource edit_copyDrawingImage}" />
+            </Button>
+            <Button x:Name="btnPaste" Click="btnPaste_Click">
+                <Image Width="18" Height="18" Source="{StaticResource edit_pasteDrawingImage}" />
+            </Button>
+            <Separator/>
+            <Button x:Name="btnAlignLeft" Click="btnAlignLeft_Click">
+                <Image Width="18" Height="18" Source="{StaticResource format_justify_leftDrawingImage}" />
+            </Button>
+            <Button x:Name="btnAlignCenter" Click="btnAlignCenter_Click">
+                <Image Width="18" Height="18" Source="{StaticResource format_justify_centerDrawingImage}" />
+            </Button>
+            <Button x:Name="btnAlignRight" Click="btnAlignRight_Click">
+                <Image Width="18" Height="18" Source="{StaticResource format_justify_rightDrawingImage}" />
+            </Button>
+            <Button x:Name="btnAlignJustified" Click="btnAlignJustified_Click">
+                <Image Width="18" Height="18" Source="{StaticResource format_justify_fillDrawingImage}" />
+            </Button>
+            <Separator/>
+            <Button x:Name="btnBold" Click="btnBold_Click">
                 <Image Width="18" Height="18" Source="{StaticResource format_text_boldDrawingImage}" />
             </Button>
-            <Button x:Name="btnItalics" Click="tglItalics_Click">
+            <Button x:Name="btnItalics" Click="btnItalics_Click">
                 <Image Width="18" Height="18" Source="{StaticResource format_text_italicDrawingImage}" />
             </Button>
-            <Button x:Name="btnUnderline" Click="tglUnderline_Click">
+            <Button x:Name="btnUnderline" Click="btnUnderline_Click">
                 <Image Width="18" Height="18" Source="{StaticResource format_text_underlineDrawingImage}" />
             </Button>
             <Button x:Name="btnStrikethrough" Click="btnStrikethrough_Click">
                 <Image Width="18" Height="18" Source="{StaticResource format_text_strikethroughDrawingImage}" />
             </Button>
+            <Separator/>
+            <Button x:Name="ddColor" Click="ddColor_Click" >
+                <Image Width="18" Height="18" Source="{StaticResource applications_graphicsDrawingImage}" />
+            </Button>
+            <Separator/>
             <Button x:Name="btnFontSmall" Click="btnFontSmall_Click">
                 <Image Width="18" Height="18" Source="{StaticResource font_size_downDrawingImage}" />
             </Button>
@@ -104,11 +132,11 @@
                 <ComboBoxItem Content="72"/>
                 <ComboBoxItem Content="96"/>
             </ComboBox>
+            <Separator/>
             <ComboBox x:Name="cbFont" Width="160" SelectedIndex="0" IsEditable="False" SelectionChanged="cbFont_SelectionChanged">
                 <ComboBoxItem Content="Default Font (not implemented)"/>
             </ComboBox>
-            <Button x:Name="ddColor" Click="ddColor_Click" >
-                <Image Width="18" Height="18" Source="{StaticResource applications_graphicsDrawingImage}" />
+            <Button x:Name="btnClearFormatting" Click="btnClearFormatting_Click" Content="Clr Fmt">
             </Button>
         </ToolBar>
         <RichTextBox x:Name="rtbDocument" Grid.Row="2" Grid.Column="0" TextChanged="rtbDocument_TextChanged" SelectionChanged="rtbDocument_SelectionChanged" />

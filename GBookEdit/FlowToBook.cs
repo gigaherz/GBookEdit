@@ -38,61 +38,43 @@ namespace GBookEdit.WPF
             var section = doc.CreateElement("section"); // TODO: support multiple actual <section>s
             chapter.AppendChild(section);
 
-
             foreach (var block in fdoc.Blocks)
             {
-                var tag = ParseBlock(block, Wrap(fdoc), doc, fdoc, false);
+                var tag = ParseBlock(block, Wrap(fdoc), doc, fdoc);
                 section.AppendChild(tag);
             }
 
             return doc;
         }
 
-        private static XmlElement ParseBlock(Block block, IFormatDescriber parent, XmlDocument doc, FlowDocument fdoc, bool isTopLevel)
+        private static XmlElement ParseBlock(Block block, IFormatDescriber parent, XmlDocument doc, FlowDocument fdoc)
         {
             return block switch
             {
-                Paragraph p => ParseParagraph(p, parent, doc, fdoc, isTopLevel),
-                Section s => ParseSection(s, parent, doc, fdoc, isTopLevel),
+                Paragraph p => ParseParagraph(p, parent, doc, fdoc),
+                Section s => ParseSection(s, parent, doc, fdoc),
                 _ => throw new NotImplementedException("Do not know how to convert a Block of type " + block.GetType().Name),
             };
         }
 
-        private static XmlElement ParseSection(Section s, IFormatDescriber parent, XmlDocument doc, FlowDocument fdoc, bool isTopLevel)
+        private static XmlElement ParseSection(Section s, IFormatDescriber parent, XmlDocument doc, FlowDocument fdoc)
         {
-            if (isTopLevel)
+            if (s.Blocks.Count == 1)
+                return ParseBlock(s.Blocks.FirstBlock, Wrap(s), doc, fdoc);
+
+            var section = doc.CreateElement("group");
+            ApplyModifiedAttributes(section, Wrap(s), parent);
+
+            foreach (var block in s.Blocks)
             {
-                var section = doc.CreateElement("section");
-                ApplyModifiedAttributes(section, Wrap(s), parent);
-
-                foreach (var block in s.Blocks)
-                {
-                    var tag = ParseBlock(block, Wrap(s), doc, fdoc, false);
-                    section.AppendChild(tag);
-                }
-
-                return section;
+                var tag = ParseBlock(block, Wrap(s), doc, fdoc);
+                section.AppendChild(tag);
             }
-            else if (s.Blocks.Count != 1 || !Approximately(s.FontSize, s.Blocks.FirstBlock.FontSize))
-            {
-                var section = doc.CreateElement("group");
-                ApplyModifiedAttributes(section, Wrap(s), parent);
 
-                foreach (var block in s.Blocks)
-                {
-                    var tag = ParseBlock(block, Wrap(s), doc, fdoc, false);
-                    section.AppendChild(tag);
-                }
-
-                return section;
-            }
-            else
-            {
-                return ParseBlock(s.Blocks.FirstBlock, parent, doc, fdoc, isTopLevel);
-            }
+            return section;
         }
 
-        private static XmlElement ParseParagraph(Paragraph p, IFormatDescriber parent, XmlDocument doc, FlowDocument fdoc, bool isTopLevel)
+        private static XmlElement ParseParagraph(Paragraph p, IFormatDescriber parent, XmlDocument doc, FlowDocument fdoc)
         {
             var tag = doc.CreateElement("p");
             ApplyModifiedAttributes(tag, Wrap(p), parent);
@@ -103,16 +85,7 @@ namespace GBookEdit.WPF
                 tag.AppendChild(child);
             }
 
-            if (isTopLevel)
-            {
-                var wrap = doc.CreateElement("section");
-                wrap.AppendChild(tag);
-                return wrap;
-            }
-            else
-            {
-                return tag;
-            }
+            return tag;
         }
 
         private static XmlNode ParseInline(Inline inline, IFormatDescriber parent, XmlDocument doc, FlowDocument fdoc)
@@ -167,6 +140,8 @@ namespace GBookEdit.WPF
                 return true;
             if (current.Color != parent.Color)
                 return true;
+            if (current.Align != parent.Align)
+                return true;
             return false;
         }
 
@@ -196,6 +171,10 @@ namespace GBookEdit.WPF
             {
                 tag.SetAttribute("color", current.Color.ToString());
             }
+            if (current.Align != parent.Align)
+            {
+                tag.SetAttribute("align", current.Align.ToString().ToLowerInvariant());
+            }
         }
 
         private static bool Approximately(double a, double b)
@@ -216,6 +195,7 @@ namespace GBookEdit.WPF
             bool IsUnderline { get; }
             bool IsStrikethrough { get; }
             Color Color { get; }
+            TextAlignment Align { get; }
         }
 
         private static IFormatDescriber Wrap(FlowDocument doc)
@@ -235,6 +215,17 @@ namespace GBookEdit.WPF
             return new WrapTextElement(e);
         }
 
+        private static IFormatDescriber Wrap(DependencyObject e)
+        {
+            if (e is Inline i)
+                return Wrap(i);
+            else if (e is TextElement te)
+                return Wrap(te);
+            else if (e is FlowDocument doc)
+                return Wrap(doc);
+            throw new ArgumentException("Object is not a FlowDocument, TextElement, or Inline. Cannot wrap " + e.GetType(), nameof(e));
+        }
+
         private readonly record struct WrapFlowDocument(FlowDocument Document) : IFormatDescriber
         {
             public double FontSize => Document.FontSize;
@@ -244,6 +235,7 @@ namespace GBookEdit.WPF
             public bool IsUnderline => false;
             public bool IsStrikethrough => false;
             public Color Color => (Document.Foreground is SolidColorBrush b ? b.Color : Colors.Black);
+            public TextAlignment Align => Document.TextAlignment;
         }
 
         private readonly record struct WrapInline(Inline Element) : IFormatDescriber
@@ -255,6 +247,7 @@ namespace GBookEdit.WPF
             public bool IsUnderline => Element.TextDecorations == TextDecorations.Underline || Element.TextDecorations == UnderlineAndStrikethrough;
             public bool IsStrikethrough => Element.TextDecorations == TextDecorations.Strikethrough || Element.TextDecorations == UnderlineAndStrikethrough;
             public Color Color => (Element.Foreground is SolidColorBrush b ? b.Color : Colors.Black);
+            public TextAlignment Align => Wrap(Element.Parent).Align;
         }
 
         private readonly record struct WrapTextElement(TextElement Element) : IFormatDescriber
@@ -266,6 +259,7 @@ namespace GBookEdit.WPF
             public bool IsUnderline => false;
             public bool IsStrikethrough => false;
             public Color Color => (Element.Foreground is SolidColorBrush b ? b.Color : Colors.Black);
+            public TextAlignment Align => Element is Block block ? block.TextAlignment : Wrap(Element.Parent).Align;
         }
     }
 }

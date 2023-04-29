@@ -13,10 +13,12 @@ namespace GBookEdit.WPF
 {
     internal class BookToFlow
     {
-        internal static FlowDocument Load(XmlReader reader, out List<string> warnings, out List<string> errors)
+        internal static void Load(FlowDocument fdoc, XmlReader reader, out List<string> warnings, out List<string> errors)
         {
             warnings = new List<string>();
             errors = new List<string>();
+
+            fdoc.Blocks.Clear();
 
             var document = new XmlDocument();
             document.Load(reader);
@@ -25,22 +27,19 @@ namespace GBookEdit.WPF
             if (root == null || root.Name != "book")
             {
                 errors.Add("Invalid root element");
-                return new FlowDocument();
+                return;
             }
 
-            return LoadBook(root, "/" + root.Name, warnings, errors);
+            LoadBook(fdoc, root, "/" + root.Name, warnings, errors);
         }
 
-        private static FlowDocument LoadBook(XmlElement root, string xmlPath, List<string> warnings, List<string> errors)
+        private static void LoadBook(FlowDocument document, XmlElement root, string xmlPath, List<string> warnings, List<string> errors)
         {
-            var document = new FlowDocument();
-
             var baseStyle = new Style(null);
 
             if (root.HasAttribute("fontSize"))
             {
                 baseStyle.FontSize = FlowToBook.DefaultFontSize * double.Parse(root.GetAttribute("fontSize"));
-                document.FontSize = baseStyle.FontSize;
             }
 
             foreach (XmlNode node in root.ChildNodes)
@@ -64,8 +63,6 @@ namespace GBookEdit.WPF
                 }
                 // else ignore
             }
-
-            return document;
         }
 
         private static void LoadChapter(BlockCollection parent, XmlElement chapter, Style style, string xmlPath, List<string> warnings, List<string> errors)
@@ -104,7 +101,9 @@ namespace GBookEdit.WPF
 
         private static void LoadSection(BlockCollection parent, XmlElement section, Style style, string xmlPath, List<string> warnings, List<string> errors)
         {
-            var block = new Section();
+            // TODO: actually support sections
+
+            //var block = new Section();
 
             foreach (XmlNode node in section.ChildNodes)
             {
@@ -118,8 +117,11 @@ namespace GBookEdit.WPF
                     switch (element.Name)
                     {
                         case "p":
-                            LoadParagraph(block.Blocks, element, style, xmlPath + "/" + element.Name, warnings, errors);
+                        {
+                            var style1 = GetStyleFromAttributes(style, element);
+                            LoadParagraph(parent, element, style1, xmlPath + "/" + element.Name, warnings, errors);
                             break;
+                        }
                         default:
                             warnings.Add("Tag '" + element.Name + "' is not recognized and will be ignored. At: " + xmlPath);
                             break;
@@ -127,20 +129,25 @@ namespace GBookEdit.WPF
                 }
                 // else ignore
             }
-
-            parent.Add(block);
         }
 
         private static void LoadParagraph(BlockCollection parent, XmlElement section, Style style, string xmlPath, List<string> warnings, List<string> errors)
         {
             var block = new Paragraph();
 
+            var range = new TextRange(block.ContentStart, block.ContentEnd);
+            range.ApplyPropertyValue(TextElement.FontSizeProperty, style.FontSize);
+            range.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush() { Color = style.Color });
+            range.ApplyPropertyValue(Block.TextAlignmentProperty, style.Align);
+
             foreach (XmlNode node in section.ChildNodes)
             {
                 if (node.NodeType == XmlNodeType.Text || node.NodeType == XmlNodeType.CDATA)
                 {
                     var text = node.InnerText; // Fixme: do I need to decode CDATA?
-                    block.Inlines.Add(new Run() { Text = text });
+                    var run = new Run() { Text = text };
+                    block.Inlines.Add(run);
+                    ApplyStyleToRun(run, style);
                 }
                 else if (node.NodeType == XmlNodeType.Element)
                 {
@@ -172,8 +179,8 @@ namespace GBookEdit.WPF
                 {
                     var text = node.InnerText; // Fixme: do I need to decode CDATA?
                     var run = new Run() { Text = text };
-                    ApplyStyleToRun(run, style);
                     inlines.Add(run);
+                    ApplyStyleToRun(run, style);
                 }
                 else if (node.NodeType == XmlNodeType.Element)
                 {
@@ -208,28 +215,68 @@ namespace GBookEdit.WPF
                 style.Strikethrough = element.GetAttribute("strikethrough") == "true";
             if (element.HasAttribute("scale")) 
                 style.FontSize *= double.Parse(element.GetAttribute("scale"));
+            if (element.HasAttribute("align"))
+                style.Align = ParseAlignment(element.GetAttribute("align"));
+            if (element.HasAttribute("color"))
+                style.Color = ParseColor(element.GetAttribute("color"));
             return style;
+        }
+
+        private static TextAlignment ParseAlignment(string v)
+        {
+            return v switch
+            {
+                "left" => TextAlignment.Left,
+                "center" => TextAlignment.Center,
+                "right" => TextAlignment.Right,
+                "justify" => TextAlignment.Justify,
+                _ => throw new Exception("Invalid alignment: " + v),
+            };
+        }
+
+        private static System.Windows.Media.Color ParseColor(string color)
+        {
+            if (!color.StartsWith("#")) throw new Exception("Invalid color format: " + color);
+            if (color.Length == 4)
+            {
+                var r = int.Parse(color.Substring(1, 1), System.Globalization.NumberStyles.HexNumber) * 0x11;
+                var g = int.Parse(color.Substring(2, 1), System.Globalization.NumberStyles.HexNumber) * 0x11;
+                var b = int.Parse(color.Substring(3, 1), System.Globalization.NumberStyles.HexNumber) * 0x11;
+                return System.Windows.Media.Color.FromRgb((byte)r, (byte)g, (byte)b);
+            }
+            if (color.Length == 7)
+            {
+                var r = int.Parse(color.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
+                var g = int.Parse(color.Substring(3, 2), System.Globalization.NumberStyles.HexNumber);
+                var b = int.Parse(color.Substring(5, 2), System.Globalization.NumberStyles.HexNumber);
+                return System.Windows.Media.Color.FromRgb((byte)r, (byte)g, (byte)b);
+            }
+            throw new Exception("Invalid color format: " + color);
         }
 
         private static void ApplyStyleToRun(Run run, Style style)
         {
-            if (style.Bold)
+            var range = new TextRange(run.ContentStart, run.ContentEnd);
+            range.ApplyPropertyValue(TextElement.FontWeightProperty, style.Bold ? FontWeights.Bold : FontWeights.Normal);
+            range.ApplyPropertyValue(TextElement.FontStyleProperty, style.Italics ? FontStyles.Italic : FontStyles.Normal);
+            range.ApplyPropertyValue(TextElement.FontSizeProperty, style.FontSize);
+            range.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush() { Color = style.Color });
+            if (style.Underline && style.Strikethrough)
             {
-                run.FontWeight = FontWeights.Bold;
+                range.ApplyPropertyValue(Inline.TextDecorationsProperty, FlowToBook.UnderlineAndStrikethrough);
             }
-            if (style.Italics)
+            else if (style.Underline)
             {
-                run.FontStyle = FontStyles.Italic;
+                range.ApplyPropertyValue(Inline.TextDecorationsProperty, TextDecorations.Underline);
             }
-            if (style.Underline)
+            else if (style.Strikethrough)
             {
-                run.TextDecorations.Add(TextDecorations.Underline);
+                range.ApplyPropertyValue(Inline.TextDecorationsProperty, TextDecorations.Strikethrough);
             }
-            if (style.Strikethrough)
+            else
             {
-                run.TextDecorations.Add(TextDecorations.Strikethrough);
+                range.ApplyPropertyValue(Inline.TextDecorationsProperty, FlowToBook.NoDecorations);
             }
-            run.FontSize = style.FontSize;
         }
 
         private class Style
@@ -241,6 +288,8 @@ namespace GBookEdit.WPF
             private bool? _underline;
             private bool? _strikethrough;
             private double? _fontSize;
+            private TextAlignment? _align;
+            private System.Windows.Media.Color? _color;
 
             public Style(Style? parent)
             {
@@ -252,6 +301,7 @@ namespace GBookEdit.WPF
                 get => (_bold ?? _parent?.Bold) ?? false;
                 set => _bold = value;
             }
+
             public bool Italics
             {
                 get => (_italics ?? _parent?.Italics) ?? false;
@@ -272,6 +322,18 @@ namespace GBookEdit.WPF
                 get => (_fontSize ?? _parent?.FontSize) ?? FlowToBook.DefaultFontSize;
                 set => _fontSize = value;
             }
+            public TextAlignment Align
+            {
+                get => (_align ?? _parent?.Align) ?? TextAlignment.Left;
+                set => _align = value;
+            }
+            public System.Windows.Media.Color Color
+            {
+                get => (_color ?? _parent?.Color) ?? Colors.Black;
+                set => _color = value;
+            }
+
+            public Style? Parent { get; }
         }
     }
 }
