@@ -1,19 +1,14 @@
-﻿using Microsoft.Win32;
+﻿//#define SHOW_XAML_IN_PREVIEW
+
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml;
 
@@ -330,25 +325,27 @@ namespace GBookEdit.WPF
 
         private void cbFontSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            rtbDocument?.Selection?.ApplyPropertyValue(TextElement.FontSizeProperty, Convert.ToDouble((cbFontSize.SelectedItem as ComboBoxItem)?.Content ?? FlowToBook.DefaultFontSize));
+            if (suppressFontSizeChange) return;
+            if (rtbDocument == null)
+                return;
+            double fontSize = Convert.ToDouble((cbFontSize.SelectedItem as ComboBoxItem)?.Content ?? FlowToBook.DefaultFontSize);
+            rtbDocument.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, fontSize);
         }
 
         private void ddColor_Click(object sender, RoutedEventArgs e)
         {
         }
 
+        private bool suppressFontSizeChange = false;
         private void rtbDocument_SelectionChanged(object sender, RoutedEventArgs e)
         {
-            // TODO FIXME: Switch to some other control, ToggleButtons are not a good match since they update the IsPressed before sending the click event
-            //tglBold.IsChecked = GetTriState(rtbDocument.Selection.GetPropertyValue(TextElement.FontWeightProperty), FontWeights.Bold);
-            //tglItalics.IsChecked = GetTriState(rtbDocument.Selection.GetPropertyValue(TextElement.FontStyleProperty), FontStyles.Italic);
-            //tglUnderline.IsChecked = GetTriState(rtbDocument.Selection.GetPropertyValue(Inline.TextDecorationsProperty), TextDecorations.Underline);
-            //tglStrikethrough.IsChecked = GetTriState(rtbDocument.Selection.GetPropertyValue(Inline.TextDecorationsProperty), TextDecorations.Strikethrough);
+            suppressFontSizeChange = true;
             var fontSize = rtbDocument.Selection.GetPropertyValue(TextElement.FontSizeProperty);
             if (fontSize != DependencyProperty.UnsetValue)
                 cbFontSize.Text = fontSize.ToString();
             else
                 cbFontSize.Text = "";
+            suppressFontSizeChange = false;
         }
 
         private bool? GetTriState(object v, object value)
@@ -458,6 +455,7 @@ namespace GBookEdit.WPF
             }
             rtbDocument.BeginChange();
             rtbDocument.Document.Blocks.Clear();
+            rtbDocument.FontSize = FlowToBook.DefaultFontSize;
             rtbDocument.EndChange();
             currentFileName = null;
             modified = false;
@@ -491,6 +489,7 @@ namespace GBookEdit.WPF
                 {
                     //doc = (FlowDocument)XamlReader.Load(reader);
                     rtbDocument.BeginChange();
+                    rtbDocument.Document.Blocks.Clear();
                     BookToFlow.Load(rtbDocument.Document, reader, out var warnings, out var errors);
                     rtbDocument.EndChange();
 

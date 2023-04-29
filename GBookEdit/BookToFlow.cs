@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection.Metadata;
+using System.Text;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -17,8 +18,6 @@ namespace GBookEdit.WPF
         {
             warnings = new List<string>();
             errors = new List<string>();
-
-            fdoc.Blocks.Clear();
 
             var document = new XmlDocument();
             document.Load(reader);
@@ -41,6 +40,8 @@ namespace GBookEdit.WPF
             {
                 baseStyle.FontSize = FlowToBook.DefaultFontSize * double.Parse(root.GetAttribute("fontSize"));
             }
+
+            document.FontSize = baseStyle.FontSize;
 
             foreach (XmlNode node in root.ChildNodes)
             {
@@ -135,10 +136,7 @@ namespace GBookEdit.WPF
         {
             var block = new Paragraph();
 
-            var range = new TextRange(block.ContentStart, block.ContentEnd);
-            range.ApplyPropertyValue(TextElement.FontSizeProperty, style.FontSize);
-            range.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush() { Color = style.Color });
-            range.ApplyPropertyValue(Block.TextAlignmentProperty, style.Align);
+            ApplyStyle(block, style);
 
             foreach (XmlNode node in section.ChildNodes)
             {
@@ -147,7 +145,7 @@ namespace GBookEdit.WPF
                     var text = node.InnerText; // Fixme: do I need to decode CDATA?
                     var run = new Run() { Text = text };
                     block.Inlines.Add(run);
-                    ApplyStyleToRun(run, style);
+                    ApplyStyle(run, style);
                 }
                 else if (node.NodeType == XmlNodeType.Element)
                 {
@@ -180,7 +178,7 @@ namespace GBookEdit.WPF
                     var text = node.InnerText; // Fixme: do I need to decode CDATA?
                     var run = new Run() { Text = text };
                     inlines.Add(run);
-                    ApplyStyleToRun(run, style);
+                    ApplyStyle(run, style);
                 }
                 else if (node.NodeType == XmlNodeType.Element)
                 {
@@ -251,16 +249,36 @@ namespace GBookEdit.WPF
                 var b = int.Parse(color.Substring(5, 2), System.Globalization.NumberStyles.HexNumber);
                 return System.Windows.Media.Color.FromRgb((byte)r, (byte)g, (byte)b);
             }
+            if (color.Length == 9)
+            {
+                var a = int.Parse(color.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
+                var r = int.Parse(color.Substring(3, 2), System.Globalization.NumberStyles.HexNumber);
+                var g = int.Parse(color.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
+                var b = int.Parse(color.Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
+                return System.Windows.Media.Color.FromArgb((byte)a, (byte)r, (byte)g, (byte)b);
+            }
             throw new Exception("Invalid color format: " + color);
         }
 
-        private static void ApplyStyleToRun(Run run, Style style)
+        private static void ApplyStyle(FlowDocument document, Style style)
         {
-            var range = new TextRange(run.ContentStart, run.ContentEnd);
+            var range = new TextRange(document.ContentStart, document.ContentEnd);
+            ApplyStyle(style, range);
+        }
+
+        private static void ApplyStyle(TextElement element, Style style)
+        {
+            var range = new TextRange(element.ContentStart, element.ContentEnd);
+            ApplyStyle(style, range);
+        }
+
+        private static void ApplyStyle(Style style, TextRange range)
+        {
             range.ApplyPropertyValue(TextElement.FontWeightProperty, style.Bold ? FontWeights.Bold : FontWeights.Normal);
             range.ApplyPropertyValue(TextElement.FontStyleProperty, style.Italics ? FontStyles.Italic : FontStyles.Normal);
             range.ApplyPropertyValue(TextElement.FontSizeProperty, style.FontSize);
             range.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush() { Color = style.Color });
+            range.ApplyPropertyValue(Block.TextAlignmentProperty, style.Align);
             if (style.Underline && style.Strikethrough)
             {
                 range.ApplyPropertyValue(Inline.TextDecorationsProperty, FlowToBook.UnderlineAndStrikethrough);

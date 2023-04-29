@@ -79,13 +79,22 @@ namespace GBookEdit.WPF
             var tag = doc.CreateElement("p");
             ApplyModifiedAttributes(tag, Wrap(p), parent);
 
-            foreach (var inline in p.Inlines)
+            if (p.Inlines.Count == 1 && p.Inlines.FirstInline is Run r)
             {
-                var child = ParseInline(inline, Wrap(p), doc, fdoc);
-                tag.AppendChild(child);
+                ApplyModifiedAttributes(tag, Wrap(r), parent);
+                tag.AppendChild(doc.CreateTextNode(r.Text));
+                return tag;
             }
+            else
+            {
+                foreach (var inline in p.Inlines)
+                {
+                    var child = ParseInline(inline, Wrap(p), doc, fdoc);
+                    tag.AppendChild(child);
+                }
 
-            return tag;
+                return tag;
+            }
         }
 
         private static XmlNode ParseInline(Inline inline, IFormatDescriber parent, XmlDocument doc, FlowDocument fdoc)
@@ -169,7 +178,19 @@ namespace GBookEdit.WPF
             }
             if (current.Color != parent.Color)
             {
-                tag.SetAttribute("color", current.Color.ToString());
+                var a = current.Color.A;
+                var r = current.Color.R;
+                var g = current.Color.G;
+                var b = current.Color.B;
+
+                if (a == 255)
+                {
+                    tag.SetAttribute("color", $"#{r:X2}{g:X2}{b:X2}");
+                }
+                else
+                {
+                    tag.SetAttribute("color", $"#{a:X2}{r:X2}{g:X2}{b:X2}");
+                }
             }
             if (current.Align != parent.Align)
             {

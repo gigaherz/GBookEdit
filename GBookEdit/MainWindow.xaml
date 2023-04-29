@@ -139,7 +139,7 @@
             <Button x:Name="btnClearFormatting" Click="btnClearFormatting_Click" Content="Clr Fmt">
             </Button>
         </ToolBar>
-        <RichTextBox x:Name="rtbDocument" Grid.Row="2" Grid.Column="0" TextChanged="rtbDocument_TextChanged" SelectionChanged="rtbDocument_SelectionChanged" />
+        <RichTextBox x:Name="rtbDocument" Grid.Row="2" Grid.Column="0" TextChanged="rtbDocument_TextChanged" VerticalScrollBarVisibility="Visible" SelectionChanged="rtbDocument_SelectionChanged" />
         <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="2" />
         <Border Grid.Column="2" Grid.Row="2" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
             <Grid>
@@ -148,7 +148,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Label Content="XML Preview (TODO: Make editable)" />
-                <TextBox x:Name="tbPreview" IsReadOnly="true" Grid.Row="1" Background="Transparent" />
+                <TextBox x:Name="tbPreview" IsReadOnly="true" Grid.Row="1" VerticalScrollBarVisibility="Visible" Background="Transparent" />
             </Grid>
         </Border>
         <StatusBar Grid.Row="3" Grid.ColumnSpan="3" MinHeight="18">
