@@ -18,12 +18,14 @@ namespace GBookEdit.WPF
 
         public static readonly float DefaultFontSize = 20.0f;
 
-        public static XmlDocument ProcessDoc(FlowDocument fdoc, string title)
+        public static XmlDocument ProcessDoc(FlowDocument fdoc, string defaultTitle)
         {
             var doc = new XmlDocument();
 
+            var additionalProps = fdoc.Tag as AdditionalBookProperties;
+
             var root = doc.CreateElement("book");
-            root.SetAttribute("title", title);
+            root.SetAttribute("title", additionalProps?.Title ?? defaultTitle);
 
             doc.AppendChild(root);
 

@@ -43,6 +43,11 @@ namespace GBookEdit.WPF
 
             document.FontSize = baseStyle.FontSize;
 
+            document.Tag = new AdditionalBookProperties()
+            {
+                Title = root.GetAttribute("title") ?? ""
+            };
+
             foreach (XmlNode node in root.ChildNodes)
             {
                 if (node.NodeType == XmlNodeType.Text || node.NodeType == XmlNodeType.CDATA)

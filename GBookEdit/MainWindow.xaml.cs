@@ -67,6 +67,7 @@ namespace GBookEdit.WPF
             timer.Stop();
             timer.Start();
             modified = true;
+            UpdateTitle();
         }
 
         private void UpdatePreview(object? sender, EventArgs e)

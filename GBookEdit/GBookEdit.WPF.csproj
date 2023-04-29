@@ -7,7 +7,13 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>GBookEdit</AssemblyName>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <ApplicationIcon>Icons\Icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Icons\Icon-384.png" />
+    <None Remove="Icons\Icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Fonts\Minecraft-Bold.ttf">
@@ -22,6 +28,8 @@
     <Resource Include="Fonts\Minecraft-Regular.ttf">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Icons\Icon-384.png" />
+    <Resource Include="Icons\Icon.ico" />
   </ItemGroup>
 
 </Project>
