@@ -1,0 +1,7 @@
+Source: http://tango.freedesktop.org/Tango_Icon_Library
+Downloaded from: http://tango.freedesktop.org/releases/tango-icon-theme-0.8.90.tar.gz
+
+Public Domain declaration:
+
+The icons in this repository are herefore released into the Public Domain.
+

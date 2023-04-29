@@ -5,6 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" ResizeMode="CanResizeWithGrip" Closing="Window_Closing">
+    <Window.Resources>
+        <ResourceDictionary Source="TangoIcons.xaml" />
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5*"/>
@@ -46,19 +49,41 @@
             </MenuItem>
         </Menu>
         <ToolBar Grid.Row="1" Grid.ColumnSpan="3">
-            <Button x:Name="btnNew"  Content="New" Click="btnNew_Click"/>
-            <Button x:Name="btnOpen" Content="Open" Click="btnOpen_Click"/>
-            <Button x:Name="btnSave" Content="Save" Click="btnSave_Click"/>
+            <Button x:Name="btnNew" Click="btnNew_Click">
+                <Image Width="18" Height="18" Source="{StaticResource document_newDrawingImage}" />
+            </Button>
+            <Button x:Name="btnOpen" Click="btnOpen_Click">
+                <Image Width="18" Height="18" Source="{StaticResource document_openDrawingImage}" />
+            </Button>
+            <Button x:Name="btnSave" Click="btnSave_Click">
+                <Image Width="18" Height="18" Source="{StaticResource document_saveDrawingImage}" />
+            </Button>
             <Separator/>
-            <Button x:Name="btnUndo" Content="Undo" Click="btnUndo_Click"/>
-            <Button x:Name="btnRedo" Content="Redo" Click="btnRedo_Click"/>
+            <Button x:Name="btnUndo" Click="btnUndo_Click">
+                <Image Width="18" Height="18" Source="{StaticResource edit_undoDrawingImage}" />
+            </Button>
+            <Button x:Name="btnRedo" Click="btnRedo_Click">
+                <Image Width="18" Height="18" Source="{StaticResource edit_redoDrawingImage}" />
+            </Button>
             <Separator/>
-            <Button x:Name="btnBold" Content="Bold" Click="tglBold_Click"/>
-            <Button x:Name="btnItalics" Content="Italics" Click="tglItalics_Click"/>
-            <Button x:Name="btnUnderline" Content="Underline" Click="tglUnderline_Click"/>
-            <Button x:Name="btnStrikethrough" Content="Strikethrough" Click="btnStrikethrough_Click"/>
-            <Button x:Name="btnFontSmall" Content="A▼" Click="btnFontSmall_Click"/>
-            <Button x:Name="btnFontBig" Content="A▲" Click="btnFontBig_Click"/>
+            <Button x:Name="btnBold" Click="tglBold_Click">
+                <Image Width="18" Height="18" Source="{StaticResource format_text_boldDrawingImage}" />
+            </Button>
+            <Button x:Name="btnItalics" Click="tglItalics_Click">
+                <Image Width="18" Height="18" Source="{StaticResource format_text_italicDrawingImage}" />
+            </Button>
+            <Button x:Name="btnUnderline" Click="tglUnderline_Click">
+                <Image Width="18" Height="18" Source="{StaticResource format_text_underlineDrawingImage}" />
+            </Button>
+            <Button x:Name="btnStrikethrough" Click="btnStrikethrough_Click">
+                <Image Width="18" Height="18" Source="{StaticResource format_text_strikethroughDrawingImage}" />
+            </Button>
+            <Button x:Name="btnFontSmall" Click="btnFontSmall_Click">
+                <Image Width="18" Height="18" Source="{StaticResource font_size_downDrawingImage}" />
+            </Button>
+            <Button x:Name="btnFontBig" Click="btnFontBig_Click">
+                <Image Width="18" Height="18" Source="{StaticResource font_size_upDrawingImage}" />
+            </Button>
             <ComboBox x:Name="cbFontSize" Width="60" SelectedIndex="0" IsEditable="True" SelectionChanged="cbFontSize_SelectionChanged">
                 <ComboBoxItem Content="4"/>
                 <ComboBoxItem Content="6"/>
@@ -82,7 +107,9 @@
             <ComboBox x:Name="cbFont" Width="160" SelectedIndex="0" IsEditable="False" SelectionChanged="cbFont_SelectionChanged">
                 <ComboBoxItem Content="Default Font (not implemented)"/>
             </ComboBox>
-            <Button x:Name="ddColor" Content="Color" Click="ddColor_Click" />
+            <Button x:Name="ddColor" Click="ddColor_Click" >
+                <Image Width="18" Height="18" Source="{StaticResource applications_graphicsDrawingImage}" />
+            </Button>
         </ToolBar>
         <RichTextBox x:Name="rtbDocument" Grid.Row="2" Grid.Column="0" TextChanged="rtbDocument_TextChanged" SelectionChanged="rtbDocument_SelectionChanged" />
         <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="2" />
