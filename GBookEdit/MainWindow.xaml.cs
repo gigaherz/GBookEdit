@@ -635,5 +635,64 @@ namespace GBookEdit.WPF
         {
             rtbDocument.Paste();
         }
+
+        private void btnChapterBreak_Click(object sender, RoutedEventArgs e)
+        {
+            var chapterBreak = BookToFlow.CreateChapterBreak();
+            var ptr = GetOrCreateParagraphBreak(rtbDocument.CaretPosition);
+            var para = ptr.Paragraph;
+            var parent = para.Parent;
+            if (parent is Section s)
+            {
+                s.Blocks.InsertBefore(para, chapterBreak);
+            }
+            if (parent is FlowDocument d)
+            {
+                d.Blocks.InsertBefore(para, chapterBreak);
+            }
+        }
+
+        private void btnSectionBreak_Click(object sender, RoutedEventArgs e)
+        {
+            var chapterBreak = BookToFlow.CreateSectionBreak();
+            var ptr = GetOrCreateParagraphBreak(rtbDocument.CaretPosition);
+            var para = ptr.Paragraph;
+            var parent = para.Parent;
+            if (parent is Section s)
+            {
+                s.Blocks.InsertBefore(para, chapterBreak);
+            }
+            if (parent is FlowDocument d)
+            {
+                d.Blocks.InsertBefore(para, chapterBreak);
+            }
+        }
+
+        private TextPointer GetOrCreateParagraphBreak(TextPointer ptr)
+        {
+            DependencyObject parent = ptr.Parent;
+            while (parent is not FlowDocument)
+            {
+                if (parent is Inline l)
+                {
+                    if (ptr.CompareTo(l.ContentEnd) < 0)
+                    {
+                        return ptr.InsertParagraphBreak();
+                    }
+
+                    if (l.NextInline != null)
+                    {
+                        return ptr.InsertParagraphBreak();
+                    }
+
+                    parent = l.Parent;
+                }
+                else if (parent is Paragraph b)
+                {
+                    return b.NextBlock.ContentStart;
+                }
+            }
+            return ptr.InsertParagraphBreak();
+        }
     }
 }

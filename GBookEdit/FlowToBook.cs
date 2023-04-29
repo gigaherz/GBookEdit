@@ -37,11 +37,30 @@ namespace GBookEdit.WPF
             var chapter = doc.CreateElement("chapter");
             root.AppendChild(chapter);
 
-            var section = doc.CreateElement("section"); // TODO: support multiple actual <section>s
+            var section = doc.CreateElement("section");
             chapter.AppendChild(section);
 
             foreach (var block in fdoc.Blocks)
             {
+                if (block is BlockUIContainer container)
+                {
+                    var ctag = block.Tag;
+                    if (ctag is ChapterBreakMarker)
+                    {
+                        chapter = doc.CreateElement("chapter");
+                        root.AppendChild(chapter);
+
+                        section = doc.CreateElement("section");
+                        chapter.AppendChild(section);
+                    }
+                    else if (ctag is SectionBreakMarker)
+                    {
+                        section = doc.CreateElement("section");
+                        chapter.AppendChild(section);
+                    }
+                    continue;
+                }
+
                 var tag = ParseBlock(block, Wrap(fdoc), doc, fdoc);
                 section.AppendChild(tag);
             }

@@ -76,6 +76,11 @@
                 <Image Width="18" Height="18" Source="{StaticResource edit_pasteDrawingImage}" />
             </Button>
             <Separator/>
+            <Button x:Name="btnChapterBreak" Click="btnChapterBreak_Click" Content="CB">
+            </Button>
+            <Button x:Name="btnSectionBreak" Click="btnSectionBreak_Click" Content="SB">
+            </Button>
+            <Separator/>
             <Button x:Name="btnAlignLeft" Click="btnAlignLeft_Click">
                 <Image Width="18" Height="18" Source="{StaticResource format_justify_leftDrawingImage}" />
             </Button>

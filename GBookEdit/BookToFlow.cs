@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Xml;
+using System.Xml.Linq;
 using static System.Collections.Specialized.BitVector32;
 using Section = System.Windows.Documents.Section;
 
@@ -48,6 +49,7 @@ namespace GBookEdit.WPF
                 Title = root.GetAttribute("title") ?? ""
             };
 
+            int chapterCount = 0;
             foreach (XmlNode node in root.ChildNodes)
             {
                 if (node.NodeType == XmlNodeType.Text || node.NodeType == XmlNodeType.CDATA)
@@ -60,6 +62,11 @@ namespace GBookEdit.WPF
                     switch (element.Name)
                     {
                         case "chapter":
+                            if (chapterCount > 0)
+                            {
+                                document.Blocks.Add(CreateChapterBreak());
+                            }
+                            chapterCount++;
                             LoadChapter(document.Blocks, element, baseStyle, xmlPath + "/" + element.Name, warnings, errors);
                             break;
                         default:
@@ -77,6 +84,7 @@ namespace GBookEdit.WPF
 
             //var block = new Section();
 
+            var sectionCount = 0;
             foreach (XmlNode node in chapter.ChildNodes)
             {
                 if (node.NodeType == XmlNodeType.Text || node.NodeType == XmlNodeType.CDATA)
@@ -85,6 +93,12 @@ namespace GBookEdit.WPF
                 }
                 else if (node.NodeType == XmlNodeType.Element)
                 {
+                    if (sectionCount > 0)
+                    {
+                        parent.Add(CreateSectionBreak());
+                    }
+                    sectionCount++;
+
                     var element = (XmlElement)node;
                     switch (element.Name)
                     {
@@ -300,6 +314,24 @@ namespace GBookEdit.WPF
             {
                 range.ApplyPropertyValue(Inline.TextDecorationsProperty, FlowToBook.NoDecorations);
             }
+        }
+
+        internal static BlockUIContainer CreateChapterBreak()
+        {
+            return new BlockUIContainer
+            {
+                Tag = new ChapterBreakMarker(),
+                Child = new BreakMarkerControl() { Header = "Chapter Break", HorizontalAlignment = HorizontalAlignment.Stretch }
+            };
+        }
+
+        internal static BlockUIContainer CreateSectionBreak()
+        {
+            return new BlockUIContainer
+            {
+                Tag = new SectionBreakMarker(),
+                Child = new BreakMarkerControl() { Header = "Section Break", HorizontalAlignment = HorizontalAlignment.Stretch }
+            };
         }
 
         private class Style
