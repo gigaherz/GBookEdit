@@ -1,2 +1,2 @@
 # GBookEdit
-Visual editor of books for thebGuidebook mod
+Visual editor of books for the [Guidebook mod](https://github.com/gigaherz/Guidebook/)
