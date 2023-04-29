@@ -417,9 +417,15 @@ namespace GBookEdit.WPF
                     {
                         var sb = new StringBuilder();
                         sb.AppendLine("The following errors were encountered while loading the file:");
-                        foreach (var err in errors)
+                        var limit = Math.Min(errors.Count, 10);
+                        for (int i = 0; i < limit; i++)
                         {
+                            string? err = errors[i];
                             sb.AppendLine(err.ToString());
+                        }
+                        if (errors.Count > limit)
+                        {
+                            sb.AppendLine("And " + (errors.Count-limit) + " more...");
                         }
                         MessageBox.Show(sb.ToString(), "Errors", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
@@ -427,9 +433,15 @@ namespace GBookEdit.WPF
                     {
                         var sb = new StringBuilder();
                         sb.AppendLine("The following warnings were encountered while loading the file:");
-                        foreach (var warn in warnings)
+                        var limit = Math.Min(warnings.Count, 10);
+                        for (int i = 0; i < limit; i++)
                         {
+                            string? warn = warnings[i];
                             sb.AppendLine(warn.ToString());
+                        }
+                        if (warnings.Count > limit)
+                        {
+                            sb.AppendLine("And " + (warnings.Count-limit) + " more...");
                         }
                         MessageBox.Show(sb.ToString(), "Warnings", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }

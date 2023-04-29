@@ -39,7 +39,7 @@ namespace GBookEdit.WPF
 
             if (root.HasAttribute("fontSize"))
             {
-                baseStyle.FontSize = double.Parse(root.GetAttribute("fontSize"));
+                baseStyle.FontSize = FlowToBook.DefaultFontSize * double.Parse(root.GetAttribute("fontSize"));
                 document.FontSize = baseStyle.FontSize;
             }
 

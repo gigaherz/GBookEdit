@@ -16,7 +16,7 @@ namespace GBookEdit.WPF
         public static readonly TextDecorationCollection NoDecorations = new();
         public static readonly TextDecorationCollection UnderlineAndStrikethrough = new(TextDecorations.Underline.Concat(TextDecorations.Strikethrough));
 
-        public static readonly float DefaultFontSize = 12.0f;
+        public static readonly float DefaultFontSize = 20.0f;
 
         public static XmlDocument ProcessDoc(FlowDocument fdoc, string title)
         {
