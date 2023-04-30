@@ -251,32 +251,76 @@ namespace GBookEdit.WPF
             };
         }
 
-        private static System.Windows.Media.Color ParseColor(string color)
+        public static System.Windows.Media.Color ParseColor(string color, bool requireHash = true)
         {
-            if (!color.StartsWith("#")) throw new Exception("Invalid color format: " + color);
-            if (color.Length == 4)
+            if (color.StartsWith("#")) color = color.Substring(1);
+            else if (requireHash) throw new Exception("Invalid color format: Color needs to startwith #. Color: " + color);
+            if (color.Length == 3)
             {
-                var r = int.Parse(color.Substring(1, 1), System.Globalization.NumberStyles.HexNumber) * 0x11;
-                var g = int.Parse(color.Substring(2, 1), System.Globalization.NumberStyles.HexNumber) * 0x11;
-                var b = int.Parse(color.Substring(3, 1), System.Globalization.NumberStyles.HexNumber) * 0x11;
+                var r = int.Parse(color.AsSpan(0, 1), System.Globalization.NumberStyles.HexNumber) * 0x11;
+                var g = int.Parse(color.AsSpan(1, 1), System.Globalization.NumberStyles.HexNumber) * 0x11;
+                var b = int.Parse(color.AsSpan(2, 1), System.Globalization.NumberStyles.HexNumber) * 0x11;
                 return System.Windows.Media.Color.FromRgb((byte)r, (byte)g, (byte)b);
             }
-            if (color.Length == 7)
+            if (color.Length == 6)
             {
-                var r = int.Parse(color.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
-                var g = int.Parse(color.Substring(3, 2), System.Globalization.NumberStyles.HexNumber);
-                var b = int.Parse(color.Substring(5, 2), System.Globalization.NumberStyles.HexNumber);
+                var r = int.Parse(color.AsSpan(0, 2), System.Globalization.NumberStyles.HexNumber);
+                var g = int.Parse(color.AsSpan(2, 2), System.Globalization.NumberStyles.HexNumber);
+                var b = int.Parse(color.AsSpan(4, 2), System.Globalization.NumberStyles.HexNumber);
                 return System.Windows.Media.Color.FromRgb((byte)r, (byte)g, (byte)b);
             }
-            if (color.Length == 9)
+            if (color.Length == 8)
             {
-                var a = int.Parse(color.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
-                var r = int.Parse(color.Substring(3, 2), System.Globalization.NumberStyles.HexNumber);
-                var g = int.Parse(color.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-                var b = int.Parse(color.Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
+                var a = int.Parse(color.AsSpan(0, 2), System.Globalization.NumberStyles.HexNumber);
+                var r = int.Parse(color.AsSpan(2, 2), System.Globalization.NumberStyles.HexNumber);
+                var g = int.Parse(color.AsSpan(4, 2), System.Globalization.NumberStyles.HexNumber);
+                var b = int.Parse(color.AsSpan(6, 2), System.Globalization.NumberStyles.HexNumber);
                 return System.Windows.Media.Color.FromArgb((byte)a, (byte)r, (byte)g, (byte)b);
             }
             throw new Exception("Invalid color format: " + color);
+        }
+
+        public static bool TryParseColor(string text, out System.Windows.Media.Color color, bool requireHash = true)
+        {
+            if (text.StartsWith("#")) text = text.Substring(1);
+            else if (requireHash)
+            {
+                color = Colors.Black;
+                return false;
+            }
+            if (text.Length == 3)
+            {
+                if (int.TryParse(text.AsSpan(0, 1), System.Globalization.NumberStyles.HexNumber, null, out var r) &&
+                        int.TryParse(text.AsSpan(1, 1), System.Globalization.NumberStyles.HexNumber, null, out var g) &&
+                        int.TryParse(text.AsSpan(2, 1), System.Globalization.NumberStyles.HexNumber, null, out var b))
+                {
+                    color = System.Windows.Media.Color.FromRgb((byte)(r & 0x11), (byte)(g & 0x11), (byte)(b & 0x11));
+                    return true;
+                }
+            }
+            if (text.Length == 6)
+            {
+                if (int.TryParse(text.AsSpan(0, 2), System.Globalization.NumberStyles.HexNumber, null, out var r) &&
+                        int.TryParse(text.AsSpan(2, 2), System.Globalization.NumberStyles.HexNumber, null, out var g) &&
+                        int.TryParse(text.AsSpan(4, 2), System.Globalization.NumberStyles.HexNumber, null, out var b))
+                {
+                    color = System.Windows.Media.Color.FromRgb((byte)r, (byte)g, (byte)b);
+                    return true;
+                }
+            }
+            if (text.Length == 8)
+            {
+                if (int.TryParse(text.AsSpan(0, 2), System.Globalization.NumberStyles.HexNumber, null, out var a) &&
+                        int.TryParse(text.AsSpan(2, 2), System.Globalization.NumberStyles.HexNumber, null, out var r) &&
+                        int.TryParse(text.AsSpan(4, 2), System.Globalization.NumberStyles.HexNumber, null, out var g) &&
+                        int.TryParse(text.AsSpan(6, 2), System.Globalization.NumberStyles.HexNumber, null, out var b))
+                {
+                    color = System.Windows.Media.Color.FromArgb((byte)a, (byte)r, (byte)g, (byte)b);
+                    return true;
+                }
+            }
+            color = Colors.Black;
+            return false;
         }
 
         private static void ApplyStyle(FlowDocument document, Style style)

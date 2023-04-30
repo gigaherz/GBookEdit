@@ -1,0 +1,122 @@
+﻿<Window x:Class="GBookEdit.WPF.ColorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GBookEdit.WPF"
+        mc:Ignorable="d" SizeToContent="WidthAndHeight" WindowStyle="ToolWindow"
+        DataContext="{Binding Mode=OneWay, RelativeSource={RelativeSource Self}}"
+        Background="{x:Static SystemColors.ControlBrush}" ShowInTaskbar="False"
+        Title="Color" Height="450" Width="800" ResizeMode="NoResize" Loaded="Window_Loaded">
+    <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0" Grid.Row="0" MinWidth="60" MinHeight="60">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0" Grid.ColumnSpan="2" Content="Palette" />
+            <Button Width="24" Height="24" Grid.Column="0" Grid.Row="1" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color0}" Tag="0" />
+            <Button Width="24" Height="24" Grid.Column="1" Grid.Row="1" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color1}" Tag="1" />
+            <Button Width="24" Height="24" Grid.Column="0" Grid.Row="2" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color2}" Tag="2" />
+            <Button Width="24" Height="24" Grid.Column="1" Grid.Row="2" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color3}" Tag="3" />
+            <Button Width="24" Height="24" Grid.Column="0" Grid.Row="3" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color4}" Tag="4" />
+            <Button Width="24" Height="24" Grid.Column="1" Grid.Row="3" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color5}" Tag="5" />
+            <Button Width="24" Height="24" Grid.Column="0" Grid.Row="4" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color6}" Tag="6" />
+            <Button Width="24" Height="24" Grid.Column="1" Grid.Row="4" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color7}" Tag="7" />
+            <Button Width="24" Height="24" Grid.Column="0" Grid.Row="5" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color8}" Tag="8" />
+            <Button Width="24" Height="24" Grid.Column="1" Grid.Row="5" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color9}" Tag="9" />
+            <Button Width="24" Height="24" Grid.Column="0" Grid.Row="6" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color10}" Tag="10" />
+            <Button Width="24" Height="24" Grid.Column="1" Grid.Row="6" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color11}" Tag="11" />
+            <Button Width="24" Height="24" Grid.Column="0" Grid.Row="7" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color12}" Tag="12" />
+            <Button Width="24" Height="24" Grid.Column="1" Grid.Row="7" Margin="4,4,0,0" Click="ColorButton_Click" Background="{Binding Color13}" Tag="13" />
+            <Button Width="24" Height="24" Grid.Column="0" Grid.Row="8" Margin="4,4,0,4" Click="ColorButton_Click" Background="{Binding Color14}" Tag="14" />
+            <Button Width="24" Height="24" Grid.Column="1" Grid.Row="8" Margin="4,4,0,4" Click="ColorButton_Click" Background="{Binding Color15}" Tag="15" />
+        </Grid>
+        <Grid Grid.Column="1" Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="49*"/>
+                <ColumnDefinition Width="20*"/>
+            </Grid.ColumnDefinitions>
+            <Border x:Name="ColorArea" BorderThickness="1" BorderBrush="{x:Static SystemColors.ActiveBorderBrush}" Margin="4,4,4,4">
+                <Grid>
+                    <Image x:Name="imgGradient" Width="256" Height="256" MouseDown="imgGradient_MouseDown" MouseMove="imgGradient_MouseMove" MouseUp="imgGradient_MouseUp" SizeChanged="imgGradient_SizeChanged"></Image>
+                    <Canvas Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False" > 
+                        <Ellipse x:Name="elColor" Width="5" Height="5" Stroke="Black" StrokeThickness="1" Canvas.Left="0" Canvas.Top="0" />
+                    </Canvas>
+                </Grid>
+            </Border>
+            <local:ImageSlider x:Name="sldSaturation" Margin="0,4,4,4" Width="18" Orientation="Vertical" Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="255" Value="255"
+                    ValueChanged="sldSaturation_ValueChanged" SizeChanged="sldSaturation_SizeChanged" />
+            <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="R" Width="18" />
+                <local:ImageSlider x:Name="sldRed" Grid.Column="1" Margin="4,0" Height="18" Minimum="0" Maximum="255" Interval="1" ValueChanged="sldRed_ValueChanged" SizeChanged="sldRed_SizeChanged" />
+                <TextBox x:Name="tbRed" Grid.Column="2" Width="30" Text="255" HorizontalContentAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" TextChanged="tbRed_TextChanged" />
+            </Grid>
+            <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="G" Width="18" />
+                <local:ImageSlider x:Name="sldGreen" Grid.Column="1" Margin="4,0" Height="18" Minimum="0" Maximum="255" Interval="1" ValueChanged="sldGreen_ValueChanged" SizeChanged="sldGreen_SizeChanged" />
+                <TextBox x:Name="tbGreen" Grid.Column="2" Width="30" Text="255" HorizontalContentAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" TextChanged="tbGreen_TextChanged" />
+            </Grid>
+            <Grid Grid.Row="3" Grid.ColumnSpan="2" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="B" Width="18" />
+                <local:ImageSlider x:Name="sldBlue" Grid.Column="1" Margin="4,0" Height="18" Minimum="0" Maximum="255" Interval="1" ValueChanged="sldBlue_ValueChanged" SizeChanged="sldBlue_SizeChanged" />
+                <TextBox x:Name="tbBlue" Grid.Column="2" Width="30" Text="255" HorizontalContentAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" TextChanged="tbBlue_TextChanged" />
+            </Grid>
+            <Grid Grid.Row="4" Grid.ColumnSpan="2" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="tbColor" Margin="4,0,4,0" Grid.Row="4" Grid.Column="0" TextChanged="tbColor_TextChanged" HorizontalContentAlignment="Right" Text="FFFFFF" Width="60" HorizontalAlignment="Right" />
+                <Border x:Name="bColor" BorderThickness="1" Width="30" BorderBrush="{x:Static SystemColors.ActiveBorderBrush}" Grid.Column="1" Margin="0,0,4,0" />
+
+            </Grid>
+        </Grid>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="1" Grid.ColumnSpan="2" Margin="4,0,0,0">
+            <Button x:Name="btnOk" Content="OK" Padding="12,4" MinWidth="60" Margin="0,4,4,4" Click="btnOk_Click" IsDefault="True" />
+            <Button x:Name="btnApply" Content="Apply" Padding="12,4" MinWidth="60" Margin="0,4,4,4" Click="btnApply_Click" />
+            <Button x:Name="btnCancel" Content="Cancel" Padding="12,4" MinWidth="60" Margin="0,4,4,4" Click="btnCancel_Click" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

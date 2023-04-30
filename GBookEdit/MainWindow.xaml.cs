@@ -358,6 +358,30 @@ namespace GBookEdit.WPF
 
         private void ddColor_Click(object sender, RoutedEventArgs e)
         {
+            var selection = rtbDocument.Selection;
+            var existing = GetRunsInRange(selection).Aggregate(((Color?)null, false), (acc, e) => {
+                var val = e.GetPropertyValue(TextElement.ForegroundProperty);
+                if (!acc.Item2)
+                    return ((val as SolidColorBrush)?.Color, true);
+                return ((val == null || val.Equals(acc.Item1) ? null : acc.Item1), true);
+            });
+            var color = existing.Item1;
+            if (color == null)
+                color = Colors.Black;
+            var dialog = new ColorDialog() { Title = "Select Color", SelectedColor = color.Value, Owner = this, WindowStartupLocation=WindowStartupLocation.CenterOwner };
+            dialog.Apply += ColorDialog_Apply;
+            if (dialog.ShowDialog() == true)
+            {
+                ColorDialog_Apply(sender, new ColorEventArgs(e.RoutedEvent, dialog.SelectedColor));
+            }
+        }
+
+        private void ColorDialog_Apply(object sender, ColorEventArgs e)
+        {
+            var selection = rtbDocument.Selection;
+            selection.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(e.Color));
+            rtbDocument_SelectionChanged(sender, e);
+            rtbDocument_TextChanged(sender, e);
         }
 
         private bool suppressFontSizeChange = false;
@@ -370,6 +394,26 @@ namespace GBookEdit.WPF
             else
                 cbFontSize.Text = "";
             suppressFontSizeChange = false;
+
+            var color = rtbDocument.Selection.GetPropertyValue(TextElement.ForegroundProperty);
+            if (color == DependencyProperty.UnsetValue)
+            {
+                bColor.Background = new DrawingBrush()
+                {
+                    TileMode = TileMode.Tile,
+                    Viewport = new Rect(0, 0, 4, 4),
+                    ViewportUnits = BrushMappingMode.Absolute,
+                    Drawing = new GeometryDrawing()
+                    {
+                        Geometry = Geometry.Parse("M0,0 H1 V1 H2 V2 H1 V1 H0Z"),
+                        Brush = Brushes.DarkGray
+                    }
+                };
+            }
+            else
+            {
+                bColor.Background = (Brush)color;
+            }
         }
 
         private bool? GetTriState(object v, object value)
@@ -460,6 +504,7 @@ namespace GBookEdit.WPF
             if (e is Inline i) return i.NextInline;
             else if (e is Block b) return b.NextBlock;
             else if (e is ListItem l) return l.NextListItem;
+            else if (e is null) return null;
             else throw new NotImplementedException("Unimplemented parent type " + e.GetType().Name);
         }
 

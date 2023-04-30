@@ -108,7 +108,7 @@
             </Button>
             <Separator/>
             <Button x:Name="ddColor" Click="ddColor_Click" >
-                <Image Width="18" Height="18" Source="{StaticResource applications_graphicsDrawingImage}" />
+                <Border x:Name="bColor" Width="18" Height="18" BorderBrush="Black" BorderThickness="1" />
             </Button>
             <Separator/>
             <Button x:Name="btnFontSmall" Click="btnFontSmall_Click">
