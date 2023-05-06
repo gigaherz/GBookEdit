@@ -1,0 +1,63 @@
+{
+    "short_name": "GBookEdit",
+    "name": "Guidebook Book Editor",
+    "icons": [
+        {
+            "src": "/icons/icon-384.png",
+            "type": "image/png",
+            "sizes": "384x384"
+        },
+        {
+            "src": "/icons/icon-256.png",
+            "type": "image/png",
+            "sizes": "256x256"
+        },
+        {
+            "src": "/icons/icon-192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/icons/icon-128.png",
+            "type": "image/png",
+            "sizes": "128x128"
+        },
+        {
+            "src": "/icons/icon-96.png",
+            "type": "image/png",
+            "sizes": "96x96"
+        },
+        {
+            "src": "/icons/icon-64.png",
+            "type": "image/png",
+            "sizes": "64x64"
+        },
+        {
+            "src": "/icons/icon-48.png",
+            "type": "image/png",
+            "sizes": "48x48"
+        },
+        {
+            "src": "/icons/icon-32.png",
+            "type": "image/png",
+            "sizes": "32x32"
+        },
+        {
+            "src": "/icons/icon-24.png",
+            "type": "image/png",
+            "sizes": "24x24"
+        },
+        {
+            "src": "/icons/icon-16.png",
+            "type": "image/png",
+            "sizes": "16x16"
+        }
+    ],
+    "id": "/?source=pwa",
+    "start_url": "/?source=pwa",
+    "background_color": "#312519",
+    "display": "standalone",
+    "scope": "/",
+    "theme_color": "#312519",
+    "description": "An editor of books for the Guidebook Mod for Minecraft: Java Edition"
+}

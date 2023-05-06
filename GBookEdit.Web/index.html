@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+    <title>GBookEdit</title>
+    <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css" />
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+    <script src="./main.js"></script>
+</head>
+<body>
+    <datalist id="fontSizes" style="display:none;">
+        <option value="4"></option>
+        <option value="5"></option>
+        <option value="6"></option>
+        <option value="7"></option>
+        <option value="8"></option>
+        <option value="10"></option>
+        <option value="11"></option>
+        <option value="12"></option>
+        <option value="14"></option>
+        <option value="16"></option>
+        <option value="18"></option>
+        <option value="20"></option>
+        <option value="24"></option>
+        <option value="29"></option>
+        <option value="32"></option>
+        <option value="36"></option>
+        <option value="40"></option>
+        <option value="48"></option>
+        <option value="56"></option>
+        <option value="64"></option>
+        <option value="72"></option>
+    </datalist>
+
+    <div id="main">
+        <div id="menubar">
+            <button>
+                File
+            </button>
+            <button>
+                Edit
+            </button>
+            <button>
+                Format
+            </button>
+            <button>
+                Options
+            </button>
+            <button>
+                Help
+            </button>
+        </div>
+        <div id="toolbar">
+            <button id="tbNew"><img src="icons/document-new.svg" /></button>
+            <button id="tbOpen"><img src="icons/document-open.svg" /></button>
+            <button id="tbSave"><img src="icons/document-save.svg" /></button>
+            <separator></separator>
+            <button id="tbUndo"><img src="icons/edit-undo.svg" /></button>
+            <button id="tbRedo"><img src="icons/edit-redo.svg" /></button>
+            <separator></separator>
+            <button id="tbChapterBreak">CB</button>
+            <button id="tbSectionBreak">SB</button>
+            <separator></separator>
+            <button id="tbAlignLeft" class="tb-align-left"><img src="icons/format-justify-left.svg" /></button>
+            <button id="tbAlignCenter" class="tb-align-center"><img src="icons/format-justify-center.svg" /></button>
+            <button id="tbAlignRight" class="tb-align-right"><img src="icons/format-justify-right.svg" /></button>
+            <button id="tbAlignJustify" class="tb-align-justify"><img src="icons/format-justify-fill.svg" /></button>
+            <separator></separator>
+            <select id="cbParagraphType" style="width: 10rem;" value="p">
+                <option value="p">Normal</option>
+                <option value="title">Title</option>
+            </select>
+            <separator></separator>
+            <button id="tbBold" class="ql-bold"><img src="icons/format-text-bold.svg" /></button>
+            <button id="tbItalics" class="ql-italic"><img src="icons/format-text-italic.svg" /></button>
+            <button id="tbUnderline" class="ql-underline"><img src="icons/format-text-underline.svg" /></button>
+            <button id="tbStrikethrough" class="ql-strike"><img src="icons/format-text-strikethrough.svg" /></button>
+            <separator></separator>
+            <button id="tbColor" class="tb-color">
+                <div class="colorsquare">&nbsp;</div>
+            </button>
+            <separator></separator>
+            <button id="tbSizeDown" class="tb-size-down"><img src="icons/font-size-down.svg" /></button>
+            <button id="tbSizeUp" class="tb-size-up"><img src="icons/font-size-up.svg" /></button>
+            <input id="cbFontSize" class="tb-size" list="fontSizes" style="text-align: right;">
+            <separator></separator>
+            <select id="cbFontFamily" class="tb-font" style="width: 10rem;overflow:hidden;">
+                <option value="default">Default Font (not implemented)</option>
+            </select>
+            <separator></separator>
+            <button id="tbClearFormatting" class="ql-clean">Clr</button>
+        </div>
+        <div id="content">
+            <div id="editorarea">
+                <div id="page">
+                    <div id="editor"></div>
+                </div>
+            </div>
+            <div id="preview">
+
+            </div>
+        </div>
+        <div id="statusbar">
+            <div class="statusbar-item">
+                Statusbar placeholder...
+            </div>
+        </div>
+    </div>
+</body>
+</html>

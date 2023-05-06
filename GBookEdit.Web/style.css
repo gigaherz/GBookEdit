@@ -1,0 +1,192 @@
+@font-face {
+    font-family: "Minecraft";
+    src: url('fonts/MinecraftRegular-Bmg3.otf'),
+            url('fonts/MinecraftBold-nMK1.otf'),
+            url('fonts/MinecraftItalic-R8Mo.otf'),
+            url('fonts/MinecraftBoldItalic-1y1e.otf');
+}
+
+
+:root {
+    --window-content: #666;
+    --control-face: #444;
+    --control-face-pressed: #111;
+    --control-face-toggled: #669;
+    --control-border: #111;
+    --control-text-color: #ddd;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    color: var(--control-text-color);
+}
+
+#main {
+    position: fixed;
+    display: grid;
+    grid-template-rows: [menubar] min-content [toolbar] min-content [content] auto [statusbar] min-content;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+
+#menubar {
+    grid-row-start: menubar;
+    min-height: 1rem;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--control-face);
+    border-bottom: 1px solid var(--control-border);
+}
+
+    #menubar > button {
+        display: flex;
+        padding: 0.33rem 0.66rem;
+        margin: 1px 0 1px 1px;
+        cursor: default;
+        border: 1px solid rgba(0, 0, 0, 0);
+        background-color: var(--control-face);
+        color: var(--control-text-color);
+    }
+
+        #menubar > button:hover,
+        #menubar > button.open {
+            border: 1px solid var(--control-border);
+        }
+
+        #menubar > button:active {
+            background-color: var(--control-face-pressed);
+        }
+
+#toolbar {
+    grid-row-start: toolbar;
+    min-height: 2rem;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--control-face);
+    border-bottom: 1px solid var(--control-border);
+}
+
+    #toolbar > button {
+        display: flex;
+        width: 2rem;
+        height: 2rem;
+        margin: 1px 0 1px 1px;
+        padding: 0;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0, 0, 0, 0);
+        background-color: var(--control-face);
+        color: var(--control-text-color);
+    }
+
+        #toolbar > button:hover,
+        #toolbar > button.open {
+            border: 1px solid var(--control-border);
+        }
+
+        #toolbar > button:active {
+            background-color: var(--control-face-pressed);
+        }
+
+        #toolbar > button.ql-active, #toolbar > button.tb-active {
+            background-color: var(--control-face-toggled);
+        }
+
+        #toolbar > button > img {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+    #toolbar > separator {
+        display: flex;
+        width: 0.75rem;
+        height: 2rem;
+    }
+
+    #toolbar > * {
+        display: flex;
+        height: 2rem;
+        margin: 1px 0 1px 1px;
+        padding: 0;
+    }
+
+
+#content {
+    grid-row-start: content;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+#editorarea {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    border: 0;
+    margin: 0;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: var(--window-content);
+    overflow-y: scroll;
+}
+
+#page {
+    display: flex;
+    margin: 2rem 4rem;
+    background-color: white;
+    box-shadow: 0.3rem 0.3rem 1rem rgba(0, 0, 0, 0.75);
+}
+
+#editor {
+    display: flex;
+    width: 40rem;
+    min-height: 40rem;
+    color: black;
+    font-family: Minecraft;
+    font-size: 20pt;
+}
+
+#editor > * {
+    width: 100%;
+}
+
+#preview {
+    display: flex;
+    width: 30%;
+    background-color: #111;
+}
+
+#statusbar {
+    grid-row-start: statusbar;
+    min-height: 1rem;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--control-face);
+    border-top: 1px solid var(--control-border);
+}
+
+    #statusbar > .statusbar-item {
+        display: flex;
+        padding: 0.33rem 0.66rem;
+        margin: 1px 0 1px 1px;
+        cursor: default;
+        border: 1px solid var(--control-border);
+        background-color: var(--control-face);
+        color: var(--control-text-color);
+    }
+
+.colorsquare {
+    display: flex;
+    border: 1px solid black;
+    background-color: red;
+    width: 1.5rem;
+    height: 1.5rem;
+}
