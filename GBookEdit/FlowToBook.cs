@@ -97,7 +97,11 @@ namespace GBookEdit.WPF
 
         private static XmlElement ParseParagraph(Paragraph p, IFormatDescriber parent, XmlDocument doc, FlowDocument fdoc)
         {
-            var tag = doc.CreateElement("p");
+            var type = (p.Tag as ParagraphTypeMarker)?.Type ?? "normal";
+            
+            // TODO: Prepare style defaults for title paragraphs
+            
+            var tag = doc.CreateElement(type == "normal" ? "p" : type);
             ApplyModifiedAttributes(tag, Wrap(p), parent);
 
             if (p.Inlines.Count == 1 && p.Inlines.FirstInline is Run r)

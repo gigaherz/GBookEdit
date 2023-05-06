@@ -1,11 +1,13 @@
 ﻿//#define SHOW_XAML_IN_PREVIEW
 
+using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.RightsManagement;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -387,15 +389,19 @@ namespace GBookEdit.WPF
         private bool suppressFontSizeChange = false;
         private void rtbDocument_SelectionChanged(object sender, RoutedEventArgs e)
         {
+            var sel = rtbDocument.Selection;
+
+            // Current font size
             suppressFontSizeChange = true;
-            var fontSize = rtbDocument.Selection.GetPropertyValue(TextElement.FontSizeProperty);
+            var fontSize = sel.GetPropertyValue(TextElement.FontSizeProperty);
             if (fontSize != DependencyProperty.UnsetValue)
                 cbFontSize.Text = fontSize.ToString();
             else
                 cbFontSize.Text = "";
             suppressFontSizeChange = false;
 
-            var color = rtbDocument.Selection.GetPropertyValue(TextElement.ForegroundProperty);
+            // Current color
+            var color = sel.GetPropertyValue(TextElement.ForegroundProperty);
             if (color == DependencyProperty.UnsetValue)
             {
                 bColor.Background = new DrawingBrush()
@@ -413,6 +419,32 @@ namespace GBookEdit.WPF
             else
             {
                 bColor.Background = (Brush)color;
+            }
+
+            // Current paragraph type
+            var start = sel.Start;
+            var end = sel.End;
+            var para = start.Paragraph;
+            object? paragraphType = null;
+            while (para != null && para.ContentStart.CompareTo(end) < 0)
+            {
+                var type = (para.Tag as ParagraphTypeMarker)?.Type ?? "normal";
+                if (paragraphType == null)
+                    paragraphType = type;
+                else
+                    paragraphType = DependencyProperty.UnsetValue;
+                para = para.NextBlock as Paragraph;
+            }
+
+            if (paragraphType != DependencyProperty.UnsetValue)
+            {
+                var type = paragraphType as string ?? "normal";
+                var item = cbParagraphType.Items.OfType<ComboBoxItem>().FirstOrDefault(i => i.Tag as string == type);
+                cbParagraphType.SelectedItem = item;
+            }
+            else
+            {
+                cbParagraphType.SelectedItem = null;
             }
         }
 
@@ -738,6 +770,34 @@ namespace GBookEdit.WPF
                 }
             }
             return ptr.InsertParagraphBreak();
+        }
+
+        private void cbParagraphType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (rtbDocument == null) return;
+
+            var sel = rtbDocument.Selection;
+            if (sel.IsEmpty)
+            {
+                var para = sel.Start.Paragraph;
+                if (para != null)
+                {
+                    var type = ((cbParagraphType.SelectedItem as ComboBoxItem)?.Tag as string) ?? "normal";
+                    para.Tag = new ParagraphTypeMarker(type);
+                }
+            }
+            else
+            {
+                var start = sel.Start;
+                var end = sel.End;
+                var para = start.Paragraph;
+                while (para != null && para.ContentStart.CompareTo(end) < 0)
+                {
+                    var type = ((cbParagraphType.SelectedItem as ComboBoxItem)?.Tag as string) ?? "normal";
+                    para.Tag = new ParagraphTypeMarker(type);
+                    para = para.NextBlock as Paragraph;
+                }
+            }
         }
     }
 }

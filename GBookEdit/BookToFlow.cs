@@ -137,6 +137,7 @@ namespace GBookEdit.WPF
                     switch (element.Name)
                     {
                         case "p":
+                        case "title":
                         {
                             var style1 = GetStyleFromAttributes(style, element);
                             LoadParagraph(parent, element, style1, xmlPath + "/" + element.Name, warnings, errors);
@@ -151,13 +152,20 @@ namespace GBookEdit.WPF
             }
         }
 
-        private static void LoadParagraph(BlockCollection parent, XmlElement section, Style style, string xmlPath, List<string> warnings, List<string> errors)
+        private static void LoadParagraph(BlockCollection parent, XmlElement paragraph, Style style, string xmlPath, List<string> warnings, List<string> errors)
         {
             var block = new Paragraph();
 
+            block.Tag = new ParagraphTypeMarker(paragraph.Name == "p" ? "normal" : paragraph.Name);
+
+            if (paragraph.Name == "title")
+            {
+                block.FontWeight = FontWeights.Bold;
+            }
+
             ApplyStyle(block, style);
 
-            foreach (XmlNode node in section.ChildNodes)
+            foreach (XmlNode node in paragraph.ChildNodes)
             {
                 if (node.NodeType == XmlNodeType.Text || node.NodeType == XmlNodeType.CDATA)
                 {

@@ -94,6 +94,11 @@
                 <Image Width="18" Height="18" Source="{StaticResource format_justify_fillDrawingImage}" />
             </Button>
             <Separator/>
+            <ComboBox x:Name="cbParagraphType" Width="160" SelectedIndex="0" IsEditable="False" SelectionChanged="cbParagraphType_SelectionChanged">
+                <ComboBoxItem Content="Normal" Tag="normal" />
+                <ComboBoxItem Content="Title"  Tag="title" />
+            </ComboBox>
+            <Separator/>
             <Button x:Name="btnBold" Click="btnBold_Click">
                 <Image Width="18" Height="18" Source="{StaticResource format_text_boldDrawingImage}" />
             </Button>
@@ -141,6 +146,7 @@
             <ComboBox x:Name="cbFont" Width="160" SelectedIndex="0" IsEditable="False" SelectionChanged="cbFont_SelectionChanged">
                 <ComboBoxItem Content="Default Font (not implemented)"/>
             </ComboBox>
+            <Separator/>
             <Button x:Name="btnClearFormatting" Click="btnClearFormatting_Click" Content="Clr Fmt">
             </Button>
         </ToolBar>
