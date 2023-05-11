@@ -190,3 +190,9 @@ body {
     width: 1.5rem;
     height: 1.5rem;
 }
+
+.ql-editor h1 {
+    font-size: 1em;
+    font-weight: bold;
+    text-align:center;
+}

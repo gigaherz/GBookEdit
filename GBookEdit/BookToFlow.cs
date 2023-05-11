@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Reflection.Metadata;
-using System.Text;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Xml;
-using System.Xml.Linq;
-using static System.Collections.Specialized.BitVector32;
-using Section = System.Windows.Documents.Section;
 
 namespace GBookEdit.WPF
 {
@@ -230,15 +224,15 @@ namespace GBookEdit.WPF
         private static Style GetStyleFromAttributes(Style parent, XmlElement element)
         {
             var style = new Style(parent);
-            if (element.HasAttribute("bold")) 
+            if (element.HasAttribute("bold"))
                 style.Bold = element.GetAttribute("bold") == "true";
-            if (element.HasAttribute("italics")) 
+            if (element.HasAttribute("italics"))
                 style.Italics = element.GetAttribute("italics") == "true";
-            if (element.HasAttribute("underline")) 
+            if (element.HasAttribute("underline"))
                 style.Underline = element.GetAttribute("underline") == "true";
-            if (element.HasAttribute("strikethrough")) 
+            if (element.HasAttribute("strikethrough"))
                 style.Strikethrough = element.GetAttribute("strikethrough") == "true";
-            if (element.HasAttribute("scale")) 
+            if (element.HasAttribute("scale"))
                 style.FontSize *= double.Parse(element.GetAttribute("scale"));
             if (element.HasAttribute("align"))
                 style.Align = ParseAlignment(element.GetAttribute("align"));

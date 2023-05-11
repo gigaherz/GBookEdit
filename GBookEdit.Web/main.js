@@ -148,31 +148,42 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     tbAlignLeft.addEventListener("click", () => {
-        const selection = editor.getSelection();
+        const selection = editor.getSelection(true);
         editor.formatLine(selection.index, selection.length, "align", "", Quill.sources.API);
     });
 
     tbAlignCenter.addEventListener("click", () => {
-        const selection = editor.getSelection();
+        const selection = editor.getSelection(true);
         editor.formatLine(selection.index, selection.length, "align", "center", Quill.sources.API);
     });
 
     tbAlignRight.addEventListener("click", () => {
-        const selection = editor.getSelection();
+        const selection = editor.getSelection(true);
         editor.formatLine(selection.index, selection.length, "align", "right", Quill.sources.API);
     });
 
 
     tbAlignJustify.addEventListener("click", () => {
-        const selection = editor.getSelection();
+        const selection = editor.getSelection(true);
         editor.formatLine(selection.index, selection.length, "align", "justify", Quill.sources.API);
     });
 
     document.getElementById("tbColor").addEventListener("click", () => {
-        const selection = editor.getSelection();
+        const selection = editor.getSelection(true);
         editor.formatText(selection.index, selection.length, "color", "red", Quill.sources.API);
     });
 
+    document.getElementById("tbSizeDown").addEventListener("click", () => {
+        const selection = editor.getSelection(true);
+        editor.formatText(selection.index, selection.length, "size", 5, Quill.sources.API);
+    });
+
+    const cbParagraphType = document.getElementById("cbParagraphType");
+    cbParagraphType.addEventListener("change", () => {
+        let type = cbParagraphType.value;
+        const selection = editor.getSelection(true);
+        editor.formatLine(selection.index, selection.length, "header", type == "title" ? 1 : 0, Quill.sources.API);
+    });
 
     document.getElementById("tbUndo").addEventListener("click", () => {
         editor.history.undo();
@@ -180,6 +191,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("tbRedo").addEventListener("click", () => {
         editor.history.redo();
+    });
+
+    document.getElementById("tbOpen").addEventListener("click", () => {
+        let warnings = [];
+        let errors = [];
+
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'text/xml';
+        input.onchange = e => {
+
+            // getting a hold of the file reference
+            var file = e.target.files[0];
+
+            // setting up the reader
+            var reader = new FileReader();
+            reader.readAsText(file, 'UTF-8');
+
+            // here we tell the reader what to do when it's done reading...
+            reader.onload = readerEvent => {
+                var content = readerEvent.target.result; // this is the content!
+
+                let deltas = loadBookFromXml(content, warnings, errors)
+                editor.setContents(deltas);
+                console.log(content);
+            }
+
+        };
+
+        input.click();
     });
 
     editor.enable();
