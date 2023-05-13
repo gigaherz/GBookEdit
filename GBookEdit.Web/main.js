@@ -1,229 +1,306 @@
 document.addEventListener("DOMContentLoaded", function () {
-
     let timeout = null;
-    let changeCallback = function () { };
-    const previewPane = document.getElementById("preview");
 
-    const editor = new Quill('#editor', {
-        placeholder: "Type here to start writing your book...",
-        formats: ["bold", "italic", "underline", "strike", "color", "size", "header", "align", "indent", "image"],
-        modules: {
-            toolbar: {
-                container: "#toolbar",
-            }
-        }
+    const editor = document.getElementById("editor");
+
+    //document.execCommand("defaultParagraphSeparator", false, "p");
+    document.execCommand("styleWithCSS", false, true);
+
+    editor.addEventListener("input", () => {
+        onChangeEvent();
     });
 
-    const defaultAttributes = {
-        align: "left",
-        color: "black",
-        size: "20pt",
-        bold: false,
-        italic: false,
-        underline: false,
-        strike: false
-    };
+    var previewPane = document.getElementById("preview");
 
-    function accountFormat(fmt, attrs) {
-        for (var key of editor.options.formats) {
-            let value = attrs[key] || defaultAttributes[key];
-            let previous = fmt[key];
-            if (Array.isArray(previous)) {
-                if (!previous.includes(value))
-                    previous.push(value);
-            }
-            else if ((key in fmt) && previous !== value) {
-                (fmt[key] = [previous]).push(value);
-            } else {
-                fmt[key] = value;
-            }
-        }
-    }
-
-    function findFormats(selection) {
-        if (selection == null) selection = { index: 0, length: 0 };
-        if (selection.length > 0) {
-            const content = editor.getContents(selection.index, selection.length);
-            const ops = content.ops;
-            let fmt = {};
-            for (let i = 0; i < ops.length; i++) {
-                let op = ops[i];
-                let attrs = op.attributes || {};
-                accountFormat(fmt, attrs);
-            }
-            return fmt;
-        }
-        else {
-            let fmt = {};
-            let formats = editor.getFormat(selection);
-            accountFormat(fmt, formats);
-            return fmt;
-        }
-    }
-
-    function findLineFormats(selection) {
-        if (selection == null) selection = { index: 0, length: 0 };
-        if (selection.length > 0) {
-            const content = editor.getLines(selection.index, selection.length);
-            let fmt = {};
-            for (let i = 0; i < content.length; i++) {
-                let blot = content[i];
-                let attrs = blot.formats() || {};
-                accountFormat(fmt, attrs);
-            }
-            return fmt;
-        }
-        else {
-            let fmt = {};
-            let formats = editor.getFormat(selection);
-            accountFormat(fmt, formats);
-            return fmt;
-        }
-    }
-
-    const tbColor = document.getElementById("tbColor");
-    const tbAlignLeft = document.getElementById("tbAlignLeft");
-    const tbAlignCenter = document.getElementById("tbAlignCenter");
-    const tbAlignRight = document.getElementById("tbAlignRight");
-    const tbAlignJustify = document.getElementById("tbAlignJustify");
-
-    editor.on("editor-change", (event, value, oldValue, source) => {
+    function onChangeEvent() {
         if (timeout != null) clearTimeout(timeout);
         timeout = setTimeout(changeCallback, 500);
+    }
 
-        const selection = editor.getSelection();
-
-        // Inline-level formatting
-        let fmt = findFormats(selection);
-        if (!Array.isArray(fmt.color)) {
-            tbColor.querySelector(".colorsquare").style.backgroundColor = fmt.color || "black";
-        }
-        else {
-            tbColor.querySelector(".colorsquare").style.backgroundColor = 'rgba(0,0,0,0)';
-        }
-
-        // Paragraph-level formatting
-        fmt = findLineFormats(selection);
-        if (!Array.isArray(fmt.align)) {
-            switch (fmt.align) {
-                default:
-                    tbAlignLeft.classList.add("tb-active");
-                    tbAlignCenter.classList.remove("tb-active");
-                    tbAlignRight.classList.remove("tb-active");
-                    tbAlignJustify.classList.remove("tb-active");
-                    break;
-                case "center":
-                    tbAlignLeft.classList.remove("tb-active");
-                    tbAlignCenter.classList.add("tb-active");
-                    tbAlignRight.classList.remove("tb-active");
-                    tbAlignJustify.classList.remove("tb-active");
-                    break;
-                case "right":
-                    tbAlignLeft.classList.remove("tb-active");
-                    tbAlignCenter.classList.remove("tb-active");
-                    tbAlignRight.classList.add("tb-active");
-                    tbAlignJustify.classList.remove("tb-active");
-                    break;
-                case "justify":
-                    tbAlignLeft.classList.remove("tb-active");
-                    tbAlignCenter.classList.remove("tb-active");
-                    tbAlignRight.classList.remove("tb-active");
-                    tbAlignJustify.classList.add("tb-active");
-                    break;
-            }
-        }
-        else {
-            tbAlignLeft.classList.remove("tb-active");
-            tbAlignCenter.classList.remove("tb-active");
-            tbAlignRight.classList.remove("tb-active");
-            tbAlignJustify.classList.remove("tb-active");
-        }
-    });
-
-    changeCallback = () => {
+    function changeCallback() {
         if (timeout != null) clearTimeout(timeout);
         timeout = null;
-        var contents = editor.getContents();
-        previewPane.innerText = JSON.stringify(contents, null, 2);
+
+        cleanupAfterChange();
+
+        previewPane.innerText = editor.outerHTML;
     };
 
-    tbAlignLeft.addEventListener("click", () => {
-        const selection = editor.getSelection(true);
-        editor.formatLine(selection.index, selection.length, "align", "", Quill.sources.API);
+    document.getElementById("tbClearFormat").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            if (!isSelectionInsideEditor()) return;
+            document.execCommand("removeFormat");
+        }, 0);
     });
-
-    tbAlignCenter.addEventListener("click", () => {
-        const selection = editor.getSelection(true);
-        editor.formatLine(selection.index, selection.length, "align", "center", Quill.sources.API);
+    document.getElementById("tbAlignLeft").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("justifyLeft");
+        }, 0);
     });
-
-    tbAlignRight.addEventListener("click", () => {
-        const selection = editor.getSelection(true);
-        editor.formatLine(selection.index, selection.length, "align", "right", Quill.sources.API);
+    document.getElementById("tbAlignCenter").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("justifyCenter");
+        }, 0);
     });
-
-
-    tbAlignJustify.addEventListener("click", () => {
-        const selection = editor.getSelection(true);
-        editor.formatLine(selection.index, selection.length, "align", "justify", Quill.sources.API);
+    document.getElementById("tbAlignRight").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("justifyRight");
+        }, 0);
     });
-
-    document.getElementById("tbColor").addEventListener("click", () => {
-        const selection = editor.getSelection(true);
-        editor.formatText(selection.index, selection.length, "color", "red", Quill.sources.API);
+    document.getElementById("tbAlignJustify").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("justifyFull");
+        }, 0);
     });
-
+    document.getElementById("tbBold").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("bold");
+            onChangeEvent();
+        }, 0);
+    });
+    document.getElementById("tbItalics").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("italic");
+        }, 0);
+    });
+    document.getElementById("tbUnderline").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("underline");
+        }, 0);
+    });
+    document.getElementById("tbStrikethrough").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("strikeThrough");
+        }, 0);
+    });
     document.getElementById("tbSizeDown").addEventListener("click", () => {
-        const selection = editor.getSelection(true);
-        editor.formatText(selection.index, selection.length, "size", 5, Quill.sources.API);
+        setTimeout(function () {
+            editor.focus();
+            processSelection((span) => {
+                span.style.fontSize = "0.5em";
+            });
+        }, 0);
     });
-
-    const cbParagraphType = document.getElementById("cbParagraphType");
-    cbParagraphType.addEventListener("change", () => {
-        let type = cbParagraphType.value;
-        const selection = editor.getSelection(true);
-        editor.formatLine(selection.index, selection.length, "header", type == "title" ? 1 : 0, Quill.sources.API);
+    document.getElementById("tbSizeUp").addEventListener("click", () => {
+        setTimeout(function () {
+            editor.focus();
+            processSelection((span) => {
+                span.style.fontSize = "2.0em";
+            });
+        }, 0);
     });
-
+    document.getElementById("tbColor").addEventListener("click", () => {
+        // TODO: Show color picker
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("foreColor", false, "#FF0000");
+        }, 0);
+    });
     document.getElementById("tbUndo").addEventListener("click", () => {
-        editor.history.undo();
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("undo");
+        }, 0);
     });
-
     document.getElementById("tbRedo").addEventListener("click", () => {
-        editor.history.redo();
+        setTimeout(function () {
+            editor.focus();
+            document.execCommand("redo");
+        }, 0);
     });
 
-    document.getElementById("tbOpen").addEventListener("click", () => {
-        let warnings = [];
-        let errors = [];
+    function processSelection(spanConsumer) {
+        let totalChanges = 0;
+        let selection = window.getSelection();
+        for (let i = 0; i < selection.rangeCount; i++) {
+            let range = selection.getRangeAt(i);
+            console.log(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
+            let changeCount = 0;
+            if (range.collapsed) {
 
-        var input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'text/xml';
-        input.onchange = e => {
-
-            // getting a hold of the file reference
-            var file = e.target.files[0];
-
-            // setting up the reader
-            var reader = new FileReader();
-            reader.readAsText(file, 'UTF-8');
-
-            // here we tell the reader what to do when it's done reading...
-            reader.onload = readerEvent => {
-                var content = readerEvent.target.result; // this is the content!
-
-                let deltas = loadBookFromXml(content, warnings, errors)
-                editor.setContents(deltas);
-                console.log(content);
+                continue;
             }
+            let frag = range.cloneContents();
+            range.deleteContents();
+            if (frag.firstElementChild == null) {
+                let span = wrapText(frag.textContent);
+                spanConsumer(span);
+                range.insertNode(span);
+                changeCount++;
+            } else {
+                let e = frag.childNodes[0];
+                while (e !== null) {
+                    let node = e;
+                    let next = e.nextSibling;
+                    if (node.nodeType === 1 && node.nodeName === "SPAN") {
+                        spanConsumer(node);
+                        range.insertNode(node);
+                        changeCount++;
+                    } else if (node.nodeType === 3) {
+                        let span = wrapText(node.textContent);
+                        spanConsumer(span);
+                        range.insertNode(span);
+                        changeCount++;
+                    } else {
+                        // append as-is
+                        range.insertNode(node);
+                    }
+                    e = next;
+                }
+            }
+            if (changeCount > 0) {
+                range = selection.getRangeAt(i);
+                let startNode = range.startContainer;
+                let startOffset = range.startOffset;
+                let endNode = range.endContainer;
+                let endOffset = range.endOffset;
+                let parent = range.commonAncestorContainer;
+                console.log("change parent", parent);
+                let e = parent.firstChild;
+                while (e !== null) {
+                    let node = e;
+                    let next = node.nextSibling;
+                    if (next !== null && node.nodeType === 1 && next.nodeType === 1 && node.nodeName === "SPAN" && next.nodeName === "SPAN") {
+                        if (compareStyleLists(node.style, next.style)) {
+                            console.log("merge!", node, next);
 
-        };
+                            let setStart = false;
+                            let setEnd = false;
 
-        input.click();
-    });
+                            console.log("start", startNode, startNode === next);
+                            if (startNode === next) {
+                                setStart = true;
+                                startNode = node;
+                                startOffset = node.textContent.length + range.startOffset;
+                            }
 
-    editor.enable();
+                            console.log("end", endNode, endNode === next);
+                            if (endNode === next) {
+                                setEnd = true;
+                                endNode = node;
+                                endOffset = node.textContent.length + range.startOffset;
+                            }
+
+                            let toRemove = next;
+                            node.textContent += toRemove.textContent;
+                            parent.removeChild(toRemove);
+                            next = node; // repeat the same node again if merged
+
+                            if (setStart)
+                                range.setStart(startNode, startOffset);
+                            if (setEnd)
+                                range.setEnd(startNode, startOffset);
+                        }
+                    }
+                    e = next;
+                }
+                totalChanges++;
+            }
+        }
+        if (totalChanges > 0) {
+            onChangeEvent();
+        }
+    }
+
+    function compareStyleLists(style1, style2) {
+        for (let prop of style1) {
+            if (style1.getPropertyValue(prop) !== style2.getPropertyValue(prop))
+                return false;
+        }
+        for (let prop of style2) {
+            if (style1.getPropertyValue(prop) !== style2.getPropertyValue(prop))
+                return false;
+        }
+        return true;
+    }
+
+    function wrapText(text) {
+        let span = document.createElement("span");
+        span.innerText = text;
+        return span;
+    }
+
+    function isSelectionInsideEditor() {
+        let selection = window.getSelection();
+        for (let i = 0; i < selection.rangeCount; i++) {
+            let range = selection.getRangeAt(i);
+            if (range.collapsed)
+                continue;
+            var ancestor = range.commonAncestorContainer;
+            if (!editor.contains(ancestor))
+                return false;
+        }
+        return true;
+    }
+
+    function cleanupAfterChange() {
+        if (editor.childNodes.length == 0)
+            return;
+        let e = editor.childNodes[0];
+        while (e !== null) {
+            let node = e;
+            let next = node.nextSibling;
+            if (node.nodeType === 3) {
+                let span = document.createElement("span");
+                span.textContent = node.textContent;
+                editor.replaceChild(span, node);
+                node = span;
+            }
+            // there isn't meant to be an else here
+            if (node.nodeType === 1) {
+                if (node.nodeName === "SPAN") {
+                    let para = document.createElement("div");
+                    editor.replaceChild(para, node);
+                    para.appendChild(node);
+                    node = para;
+                }
+                // there isn't meant to be an else here
+                if (node.nodeName === "DIV") {
+                    cleanupParagraph(node);
+                }
+                else {
+                    console.warn("unexpected tag " + node.nodeName + " inside paragraph", node);
+                }
+            }
+            e = next;
+        }
+    }
+
+    function cleanupParagraph(para) {
+        if (para.childNodes.length == 0)
+            return;
+        let e = para.childNodes[0];
+        while (e !== null) {
+            let node = e;
+            let next = node.nextSibling;
+            if (node.nodeType === 3) {
+                let span = document.createElement("span");
+                span.textContent = node.textContent;
+                para.replaceChild(span, node);
+                node = span;
+            }
+            // there isn't meant to be an else here
+            if (node.nodeType === 1) {
+                if (node.nodeName === "DIV") {
+                    console.warn("unexpected div inside paragraph", node);
+                }
+                else if (node.nodeName !== "SPAN") {
+                    console.warn("unexpected tag " + node.nodeName + " inside paragraph", node);
+                }
+            }
+            e = next;
+        }
+    }
+
     editor.focus();
 
     document.title = "(untitled)* - GBookEdit v1.0.0";

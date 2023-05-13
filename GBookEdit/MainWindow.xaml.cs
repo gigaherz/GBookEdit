@@ -12,6 +12,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Xml;
@@ -122,50 +123,10 @@ namespace GBookEdit.WPF
 
         private void cbFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            RoutedCommand t;
         }
 
-        private void btnNew_Click(object sender, RoutedEventArgs e)
-        {
-            mnuNew_Click(sender, e);
-        }
-
-        private void btnOpen_Click(object sender, RoutedEventArgs e)
-        {
-            mnuOpen_Click(sender, e);
-        }
-
-        private void btnSave_Click(object sender, RoutedEventArgs e)
-        {
-            mnuSave_Click(sender, e);
-        }
-
-        private void btnUndo_Click(object sender, RoutedEventArgs e)
-        {
-            rtbDocument.Undo();
-        }
-
-        private void btnRedo_Click(object sender, RoutedEventArgs e)
-        {
-            rtbDocument.Redo();
-        }
-
-        private void btnCut_Click(object sender, RoutedEventArgs e)
-        {
-            rtbDocument.Cut();
-        }
-
-        private void btnCopy_Click(object sender, RoutedEventArgs e)
-        {
-            rtbDocument.Copy();
-        }
-
-        private void btnPaste_Click(object sender, RoutedEventArgs e)
-        {
-            rtbDocument.Paste();
-        }
-
-        private void btnAlignLeft_Click(object sender, RoutedEventArgs e)
+        private void cmdAlignLeft_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Left);
@@ -173,7 +134,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void btnAlignCenter_Click(object sender, RoutedEventArgs e)
+        private void cmdAlignCenter_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Center);
@@ -181,7 +142,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void btnAlignRight_Click(object sender, RoutedEventArgs e)
+        private void cmdAlignRight_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Right);
@@ -189,7 +150,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void btnAlignJustified_Click(object sender, RoutedEventArgs e)
+        private void cmdAlignJustified_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Justify);
@@ -197,7 +158,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void btnBold_Click(object sender, RoutedEventArgs e)
+        private void cmdBold_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             sel.ApplyPropertyValue(TextElement.FontWeightProperty, 
@@ -208,7 +169,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void btnItalics_Click(object sender, RoutedEventArgs e)
+        private void cmdItalics_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             sel.ApplyPropertyValue(TextElement.FontStyleProperty, 
@@ -219,7 +180,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void btnUnderline_Click(object sender, RoutedEventArgs e)
+        private void cmdUnderline_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             var existing = GetRunsInRange(sel).Aggregate(((bool?)null, false), (acc, e) => {
@@ -258,7 +219,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void btnStrikethrough_Click(object sender, RoutedEventArgs e)
+        private void cmdStrikethrough_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
             var existing = GetRunsInRange(sel).Aggregate(((bool?)null, false), (acc, e) => {
@@ -297,7 +258,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void btnFontSmall_Click(object sender, RoutedEventArgs e)
+        private void cmdFontSmall_Execute(object sender, RoutedEventArgs e)
         {
             var selection = rtbDocument.Selection;
             var fontSize = selection.GetPropertyValue(TextElement.FontSizeProperty);
@@ -318,7 +279,7 @@ namespace GBookEdit.WPF
             rtbDocument_TextChanged(sender, e);
         }
 
-        private void btnFontBig_Click(object sender, RoutedEventArgs e)
+        private void cmdFontBig_Execute(object sender, RoutedEventArgs e)
         {
             var selection = rtbDocument.Selection;
             var fontSize = selection.GetPropertyValue(TextElement.FontSizeProperty);
@@ -358,7 +319,7 @@ namespace GBookEdit.WPF
             rtbDocument.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, fontSize);
         }
 
-        private void ddColor_Click(object sender, RoutedEventArgs e)
+        private void cmdChooseColor_Execute(object sender, RoutedEventArgs e)
         {
             var selection = rtbDocument.Selection;
             var existing = GetRunsInRange(selection).Aggregate(((Color?)null, false), (acc, e) => {
@@ -540,14 +501,14 @@ namespace GBookEdit.WPF
             else throw new NotImplementedException("Unimplemented parent type " + e.GetType().Name);
         }
 
-        private void mnuNew_Click(object sender, RoutedEventArgs e)
+        private void cmdNew_Execute(object sender, RoutedEventArgs e)
         {
             if (Modified())
             {
                 var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
-                    mnuSave_Click(sender, e);
+                    cmdSave_Execute(sender, e);
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
@@ -563,14 +524,14 @@ namespace GBookEdit.WPF
             UpdateTitle();
         }
 
-        private void mnuOpen_Click(object sender, RoutedEventArgs e)
+        private void cmdOpen_Execute(object sender, RoutedEventArgs e)
         {
             if (Modified())
             {
                 var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
-                    mnuSave_Click(sender, e);
+                    cmdSave_Execute(sender, e);
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
@@ -634,11 +595,11 @@ namespace GBookEdit.WPF
             }
         }
 
-        private void mnuSave_Click(object sender, RoutedEventArgs e)
+        private void cmdSave_Execute(object sender, RoutedEventArgs e)
         {
             if (currentFileName == null)
             {
-                mnuSaveAs_Click(sender, e);
+                cmdSaveAs_Execute(sender, e);
                 return;
             }
 
@@ -657,7 +618,7 @@ namespace GBookEdit.WPF
             }
         }
 
-        private void mnuSaveAs_Click(object sender, RoutedEventArgs e)
+        private void cmdSaveAs_Execute(object sender, RoutedEventArgs e)
         {
             var dlg = new SaveFileDialog
             {
@@ -668,11 +629,11 @@ namespace GBookEdit.WPF
             if (dlg.ShowDialog() == true)
             {
                 currentFileName = dlg.FileName;
-                mnuSave_Click(sender, e);
+                cmdSave_Execute(sender, e);
             }
         }
 
-        private void mnuExit_Click(object sender, RoutedEventArgs e)
+        private void cmdExit_Execute(object sender, RoutedEventArgs e)
         {
             Close();
         }
@@ -684,7 +645,7 @@ namespace GBookEdit.WPF
                 var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
-                    mnuSave_Click(sender, new RoutedEventArgs());
+                    cmdSave_Execute(sender, new RoutedEventArgs());
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
@@ -693,27 +654,26 @@ namespace GBookEdit.WPF
             }
         }
 
-        private void btnClearFormatting_Click(object sender, RoutedEventArgs e)
+        private void cmdClearFormatting_Execute(object sender, RoutedEventArgs e)
         {
             rtbDocument.Selection.ClearAllProperties();
         }
 
-        private void mnuCut_Click(object sender, RoutedEventArgs e)
+        private void cmdPastePlain_Execute(object sender, RoutedEventArgs e)
         {
-            rtbDocument.Cut();
+            var lines = Clipboard.GetText().Split("\n");
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string? line = lines[i];
+                if (i > 0)
+                {
+                    rtbDocument.CaretPosition.InsertParagraphBreak();
+                }
+                rtbDocument.CaretPosition.InsertTextInRun(line);
+            }
         }
 
-        private void mnuCopy_Click(object sender, RoutedEventArgs e)
-        {
-            rtbDocument.Copy();
-        }
-
-        private void mnuPaste_Click(object sender, RoutedEventArgs e)
-        {
-            rtbDocument.Paste();
-        }
-
-        private void btnChapterBreak_Click(object sender, RoutedEventArgs e)
+        private void cmdInsertChapterBreak_Execute(object sender, RoutedEventArgs e)
         {
             var chapterBreak = BookToFlow.CreateChapterBreak();
             var ptr = GetOrCreateParagraphBreak(rtbDocument.CaretPosition);
@@ -729,7 +689,7 @@ namespace GBookEdit.WPF
             }
         }
 
-        private void btnSectionBreak_Click(object sender, RoutedEventArgs e)
+        private void cmdInsertSectionBreak_Execute(object sender, RoutedEventArgs e)
         {
             var chapterBreak = BookToFlow.CreateSectionBreak();
             var ptr = GetOrCreateParagraphBreak(rtbDocument.CaretPosition);
