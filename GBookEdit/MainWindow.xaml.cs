@@ -44,6 +44,10 @@ namespace GBookEdit.WPF
             var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0";
             titleSuffix = appname + " " + version;
 
+            rtbDocument.InputBindings.Clear();
+            KeyBinding keyBinding = new(ApplicationCommands.NotACommand, Key.U, ModifierKeys.Control);
+            rtbDocument.InputBindings.Add(keyBinding);
+
             rtbDocument.Document.FontSize = FlowToBook.DefaultFontSize;
             rtbDocument.Document.FontFamily = new FontFamily(new Uri("pack://application:,,,/"), "./Fonts/#Minecraft");
 
@@ -123,95 +127,35 @@ namespace GBookEdit.WPF
 
         private void cbFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            RoutedCommand t;
-        }
-
-        private void cmdAlignLeft_Execute(object sender, RoutedEventArgs e)
-        {
-            var sel = rtbDocument.Selection;
-            sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Left);
-            rtbDocument_SelectionChanged(sender, e);
-            rtbDocument_TextChanged(sender, e);
-        }
-
-        private void cmdAlignCenter_Execute(object sender, RoutedEventArgs e)
-        {
-            var sel = rtbDocument.Selection;
-            sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Center);
-            rtbDocument_SelectionChanged(sender, e);
-            rtbDocument_TextChanged(sender, e);
-        }
-
-        private void cmdAlignRight_Execute(object sender, RoutedEventArgs e)
-        {
-            var sel = rtbDocument.Selection;
-            sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Right);
-            rtbDocument_SelectionChanged(sender, e);
-            rtbDocument_TextChanged(sender, e);
-        }
-
-        private void cmdAlignJustified_Execute(object sender, RoutedEventArgs e)
-        {
-            var sel = rtbDocument.Selection;
-            sel.ApplyPropertyValue(Block.TextAlignmentProperty, TextAlignment.Justify);
-            rtbDocument_SelectionChanged(sender, e);
-            rtbDocument_TextChanged(sender, e);
-        }
-
-        private void cmdBold_Execute(object sender, RoutedEventArgs e)
-        {
-            var sel = rtbDocument.Selection;
-            sel.ApplyPropertyValue(TextElement.FontWeightProperty, 
-                GetTriState(rtbDocument.Selection.GetPropertyValue(TextElement.FontWeightProperty), FontWeights.Bold) == true 
-                        ? FontWeights.Normal
-                        : FontWeights.Bold);
-            rtbDocument_SelectionChanged(sender, e);
-            rtbDocument_TextChanged(sender, e);
-        }
-
-        private void cmdItalics_Execute(object sender, RoutedEventArgs e)
-        {
-            var sel = rtbDocument.Selection;
-            sel.ApplyPropertyValue(TextElement.FontStyleProperty, 
-                GetTriState(rtbDocument.Selection.GetPropertyValue(TextElement.FontStyleProperty), FontStyles.Italic) == true
-                ? FontStyles.Normal 
-                : FontStyles.Italic);
-            rtbDocument_SelectionChanged(sender, e);
-            rtbDocument_TextChanged(sender, e);
         }
 
         private void cmdUnderline_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
-            var existing = GetRunsInRange(sel).Aggregate(((bool?)null, false), (acc, e) => {
+            var ranges = GetRunsInRange(sel).ToList();
+            var existing = ranges.Aggregate(((bool?)null, false), (acc, e) => {
                 var val = e.GetPropertyValue(Inline.TextDecorationsProperty);
-                var hasUnderline = val == TextDecorations.Underline || val == FlowToBook.UnderlineAndStrikethrough;
+                var hasUnderline = (val as TextDecorationCollection)?.Any(dec => dec.Location == TextDecorationLocation.Underline);
                 if (!acc.Item2)
                     return (hasUnderline, true);
                 return ((val == null || hasUnderline != acc.Item1 ? null : acc.Item1), true);
             });
             var set = !(existing.Item1 == true);
-            foreach (var range in GetRunsInRange(sel))
+            foreach (var range in ranges)
             {
                 var current = range.GetPropertyValue(Inline.TextDecorationsProperty) as TextDecorationCollection ?? FlowToBook.NoDecorations;
                 TextDecorationCollection toApply;
                 if (set == true)
                 {
-                    if (current == TextDecorations.Underline)
+                    if (current.Any(dec => dec.Location == TextDecorationLocation.Underline))
                         continue;
-                    if (current == TextDecorations.Strikethrough)
-                        toApply = FlowToBook.UnderlineAndStrikethrough;
-                    else
-                        toApply = TextDecorations.Underline;
+                    toApply = current.Clone();
+                    toApply.Add(TextDecorations.Underline);
                 }
                 else
                 {
-                    if (current.Count == 0)
+                    if (!current.TryRemove(TextDecorations.Underline, out toApply))
                         continue;
-                    if (current == FlowToBook.UnderlineAndStrikethrough)
-                        toApply = TextDecorations.Strikethrough;
-                    else
-                        toApply = FlowToBook.NoDecorations;
                 }
                 range.ApplyPropertyValue(Inline.TextDecorationsProperty, toApply);
             }
@@ -222,92 +166,35 @@ namespace GBookEdit.WPF
         private void cmdStrikethrough_Execute(object sender, RoutedEventArgs e)
         {
             var sel = rtbDocument.Selection;
-            var existing = GetRunsInRange(sel).Aggregate(((bool?)null, false), (acc, e) => {
+            var ranges = GetRunsInRange(sel).ToList();
+            var existing = ranges.Aggregate(((bool?)null, false), (acc, e) => {
                 var val = e.GetPropertyValue(Inline.TextDecorationsProperty);
-                var hasStrikethrough = val == TextDecorations.Strikethrough || val == FlowToBook.UnderlineAndStrikethrough;
+                var hasStrikethrough = (val as TextDecorationCollection)?.Any(dec => dec.Location == TextDecorationLocation.Strikethrough);
                 if (!acc.Item2)
                     return (hasStrikethrough, true);
                 return ((val == null || hasStrikethrough != acc.Item1 ? null : acc.Item1), true);
             });
             var set = !(existing.Item1 == true);
-            foreach (var range in GetRunsInRange(sel))
+            foreach (var range in ranges)
             {
                 var current = range.GetPropertyValue(Inline.TextDecorationsProperty) as TextDecorationCollection ?? FlowToBook.NoDecorations;
                 TextDecorationCollection toApply;
                 if (set == true)
                 {
-                    if (current == TextDecorations.Strikethrough)
+                    if (current.Any(dec => dec.Location == TextDecorationLocation.Strikethrough))
                         continue;
-                    if (current == TextDecorations.Underline)
-                        toApply = FlowToBook.UnderlineAndStrikethrough;
-                    else
-                        toApply = TextDecorations.Strikethrough;
+                    toApply = current.Clone();
+                    toApply.Add(TextDecorations.Strikethrough);
                 }
                 else
                 {
-                    if (current.Count == 0)
+                    if (!current.TryRemove(TextDecorations.Strikethrough, out toApply))
                         continue;
-                    if (current == FlowToBook.UnderlineAndStrikethrough)
-                        toApply = TextDecorations.Underline;
-                    else
-                        toApply = FlowToBook.NoDecorations;
                 }
                 range.ApplyPropertyValue(Inline.TextDecorationsProperty, toApply);
             }
             rtbDocument_SelectionChanged(sender, e);
             rtbDocument_TextChanged(sender, e);
-        }
-
-        private void cmdFontSmall_Execute(object sender, RoutedEventArgs e)
-        {
-            var selection = rtbDocument.Selection;
-            var fontSize = selection.GetPropertyValue(TextElement.FontSizeProperty);
-            if (fontSize != DependencyProperty.UnsetValue)
-            {
-                selection.ApplyPropertyValue(TextElement.FontSizeProperty, NextFontSizeDown(fontSize));
-            }
-            else
-            {
-                foreach (var range in GetRunsInRange(selection))
-                {
-                    fontSize = range.GetPropertyValue(TextElement.FontSizeProperty);
-                    if (fontSize == DependencyProperty.UnsetValue) fontSize = FlowToBook.DefaultFontSize;
-                    range.ApplyPropertyValue(TextElement.FontSizeProperty, NextFontSizeDown(fontSize));
-                }
-            }
-            rtbDocument_SelectionChanged(sender, e);
-            rtbDocument_TextChanged(sender, e);
-        }
-
-        private void cmdFontBig_Execute(object sender, RoutedEventArgs e)
-        {
-            var selection = rtbDocument.Selection;
-            var fontSize = selection.GetPropertyValue(TextElement.FontSizeProperty);
-            if (fontSize != DependencyProperty.UnsetValue)
-            {
-                selection.ApplyPropertyValue(TextElement.FontSizeProperty, NextFontSizeUp(fontSize));
-            }
-            else
-            {
-                foreach (var range in GetRunsInRange(selection))
-                {
-                    fontSize = range.GetPropertyValue(TextElement.FontSizeProperty);
-                    if (fontSize == DependencyProperty.UnsetValue) fontSize = FlowToBook.DefaultFontSize;
-                    range.ApplyPropertyValue(TextElement.FontSizeProperty, NextFontSizeUp(fontSize));
-                }
-            }
-            rtbDocument_SelectionChanged(sender, e);
-            rtbDocument_TextChanged(sender, e);
-        }
-
-        private static double NextFontSizeDown(object fontSize)
-        {
-            return Math.Max(1, Convert.ToDouble(fontSize ?? FlowToBook.DefaultFontSize) - 1);
-        }
-
-        private static double NextFontSizeUp(object fontSize)
-        {
-            return Math.Max(1, Convert.ToDouble(fontSize ?? FlowToBook.DefaultFontSize) + 1);
         }
 
         private void cbFontSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -321,8 +208,9 @@ namespace GBookEdit.WPF
 
         private void cmdChooseColor_Execute(object sender, RoutedEventArgs e)
         {
-            var selection = rtbDocument.Selection;
-            var existing = GetRunsInRange(selection).Aggregate(((Color?)null, false), (acc, e) => {
+            var sel = rtbDocument.Selection;
+            var ranges = GetRunsInRange(sel).ToList();
+            var existing = ranges.Aggregate(((Color?)null, false), (acc, e) => {
                 var val = e.GetPropertyValue(TextElement.ForegroundProperty);
                 if (!acc.Item2)
                     return ((val as SolidColorBrush)?.Color, true);
@@ -427,78 +315,86 @@ namespace GBookEdit.WPF
                 yield break;
             }
 
-            TextPointer? p = start;
-            TextElement? e = (TextElement)start.Parent;
-            while (e != end.Parent && e != null)
+            TextElement? current = start.Parent as TextElement;
+            while (start.CompareTo(end) < 0)
             {
-                if (e is Inline i)
+                if (current is Inline i)
                 {
                     if (i is Span s)
                     {
-                        e = s.Inlines.Count > 0 ? s.Inlines.First() : null;
-                        p = e?.ContentStart;
+                        current = s.Inlines.Count > 0 ? s.Inlines.First() : null;
+                        if (current != null) start = current.ContentStart;
                     }
                     else if (i is Run r)
                     {
+                        bool reachedEnd = false;
                         var end2 = r.ContentEnd;
-                        var range1 = new TextRange(p, end2);
+                        if (end2.CompareTo(end) > 0)
+                        {
+                            end2 = end;
+                            reachedEnd = true;
+                        }
+                        var range1 = new TextRange(start, end2);
                         yield return range1;
-                        e = null; p = null;
+                        if (reachedEnd)
+                            break;
+                        current = null;
+                        start = range1.End;
                     }
                     else if (i is not LineBreak)
                     {
                         throw new NotImplementedException("Unimplemented inline type " + i.GetType().Name);
                     }
-                    if (e == null)
+                    if (current == null)
                     {
-                        e = i.NextInline ?? GoToNextParent(i);
-                        p = e?.ContentStart;
+                        current = i.NextInline ?? GoToNextOrParent(i);
+                        if (current != null) start = current.ContentStart;
                     }
                 }
-                else if (e is ListItem l)
+                else if (current is ListItem l)
                 {
-                    e = l.Blocks.Count > 0 ? l.Blocks.First() : null;
-                    if (e == null)
+                    current = l.Blocks.Count > 0 ? l.Blocks.First() : null;
+                    if (current == null)
                     {
-                        e = l.NextListItem ?? GoToNextParent(l);
-                        p = e?.ContentStart;
+                        current = l.NextListItem ?? GoToNextOrParent(l);
+                        if (current != null) start = current.ContentStart;
                     }
                 }
-                else if (e is Block b)
+                else if (current is Block b)
                 {
                     if (b is Paragraph p2)
                     {
-                        e = p2.Inlines.Count > 0 ? p2.Inlines.First() : null;
+                        current = p2.Inlines.Count > 0 ? p2.Inlines.First() : null;
                     }
                     else if (b is List l2)
                     {
-                        e = l2.ListItems.Count > 0 ? l2.ListItems.First() : null;
+                        current = l2.ListItems.Count > 0 ? l2.ListItems.First() : null;
                     }
                     else if (b is Section s)
                     {
-                        e = s.Blocks.Count > 0 ? s.Blocks.First() : null;
+                        current = s.Blocks.Count > 0 ? s.Blocks.First() : null;
                     }
                     else throw new NotImplementedException("Unimplemented block type " + b.GetType().Name);
-                    if (e == null)
+                    if (current == null)
                     {
-                        e = b.NextBlock ?? GoToNextParent(b);
-                        p = e?.ContentStart;
+                        current = b.NextBlock ?? GoToNextOrParent(b);
+                        if (current != null) start = current.ContentStart;
                     }
                 }
             }
-
-
-
         }
 
-        private static TextElement GoToNextParent(TextElement t)
+        private static TextElement? GoToNextOrParent(TextElement? current)
         {
-            var e = t.Parent;
-            if (e is Inline i) return i.NextInline;
-            else if (e is Block b) return b.NextBlock;
-            else if (e is ListItem l) return l.NextListItem;
-            else if (e is null) return null;
-            else throw new NotImplementedException("Unimplemented parent type " + e.GetType().Name);
+            if (current is Inline i) 
+                return i.NextInline ?? GoToNextOrParent(current.Parent as TextElement);
+            else if (current is Block b)
+                return b.NextBlock ?? GoToNextOrParent(current.Parent as TextElement);
+            else if (current is ListItem l)
+                return l.NextListItem ?? GoToNextOrParent(current.Parent as TextElement);
+            else if (current is null)
+                return null;
+            else throw new NotImplementedException("Unimplemented parent type " + current.GetType().Name);
         }
 
         private void cmdNew_Execute(object sender, RoutedEventArgs e)
@@ -661,6 +557,11 @@ namespace GBookEdit.WPF
 
         private void cmdPastePlain_Execute(object sender, RoutedEventArgs e)
         {
+            if (!Clipboard.ContainsText())
+            {
+                return;
+            }
+            rtbDocument.Selection.Text = "";
             var lines = Clipboard.GetText().Split("\n");
             for (int i = 0; i < lines.Length; i++)
             {

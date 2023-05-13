@@ -18,6 +18,7 @@
             <RoutedCommand x:Key="InsertSectionBreak" />
             <RoutedCommand x:Key="InsertChapterBreak" />
             <RoutedCommand x:Key="ShowChooseColor" />
+            <RoutedCommand x:Key="ToggleUnderline" />
         </ResourceDictionary>
     </Window.Resources>
     <Window.InputBindings>
@@ -25,8 +26,14 @@
         <KeyBinding Key="O" Modifiers="Control" Command="Open"/>
         <KeyBinding Key="S" Modifiers="Control" Command="Save"/>
         <KeyBinding Key="S" Modifiers="Shift+Control" Command="SaveAs"/>
+        <KeyBinding Key="X" Modifiers="Control" Command="Cut"/>
+        <KeyBinding Key="C" Modifiers="Control" Command="Copy"/>
+        <KeyBinding Key="V" Modifiers="Control" Command="Paste"/>
         <KeyBinding Key="V" Modifiers="Shift+Control" Command="{StaticResource PastePlain}"/>
-        <KeyBinding Key="K" Modifiers="Control" Command="{StaticResource ToggleStrikethrough}"/>
+        <KeyBinding Key="B" Modifiers="Control" Command="ToggleBold"/>
+        <KeyBinding Key="I" Modifiers="Control" Command="ToggleItalic"/>
+        <KeyBinding Key="U" Modifiers="Control" Command="{StaticResource ToggleUnderline}"/>
+        <KeyBinding Key="H" Modifiers="Control" Command="{StaticResource ToggleStrikethrough}"/>
     </Window.InputBindings>
     <Window.CommandBindings>
         <CommandBinding Command="New" Executed="cmdNew_Execute" />
@@ -35,7 +42,8 @@
         <CommandBinding Command="SaveAs" Executed="cmdSaveAs_Execute" />
         <CommandBinding Command="Close" Executed="cmdExit_Execute" />
         <CommandBinding Command="{StaticResource PastePlain}" Executed="cmdPastePlain_Execute" />
-        <CommandBinding Command="{StaticResource ToggleStrikethrough}" Executed="cmdPastePlain_Execute" />
+        <CommandBinding Command="{StaticResource ToggleUnderline}" Executed="cmdUnderline_Execute" />
+        <CommandBinding Command="{StaticResource ToggleStrikethrough}" Executed="cmdStrikethrough_Execute" />
         <CommandBinding Command="{StaticResource ClearFormatting}" Executed="cmdClearFormatting_Execute" />
         <CommandBinding Command="{StaticResource InsertChapterBreak}" Executed="cmdInsertChapterBreak_Execute" />
         <CommandBinding Command="{StaticResource InsertSectionBreak}" Executed="cmdInsertSectionBreak_Execute" />
@@ -64,15 +72,15 @@
                 <MenuItem x:Name="mnuExit" Header="E_xit" Command="Close" InputGestureText="Alt+F4" />
             </MenuItem>
             <MenuItem Header="Edit">
-                <MenuItem x:Name="mnuCut" Header="Cu_t" Command="Cut" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}" InputGestureText="Ctrl+X" />
-                <MenuItem x:Name="mnuCopy" Header="_Copy" Command="Copy" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}" InputGestureText="Ctrl+C" />
-                <MenuItem x:Name="mnuPaste" Header="_Paste" Command="Paste" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}" InputGestureText="Ctrl+V" />
+                <MenuItem x:Name="mnuCut" Header="Cu_t" Command="Cut" InputGestureText="Ctrl+X" />
+                <MenuItem x:Name="mnuCopy" Header="_Copy" Command="Copy" InputGestureText="Ctrl+C" />
+                <MenuItem x:Name="mnuPaste" Header="_Paste" Command="Paste" InputGestureText="Ctrl+V" />
                 <MenuItem x:Name="mnuPastePlain" Header="Paste P_lain" Command="{StaticResource PastePlain}" InputGestureText="Ctrl+Shift+V" />
             </MenuItem>
             <MenuItem Header="_Format">
-                <MenuItem Header="_Bold" Command="ToggleBold" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}" InputGestureText="Ctrl+B" />
-                <MenuItem Header="_Italics" Command="ToggleItalic" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}" InputGestureText="Ctrl+I" />
-                <MenuItem Header="_Underline" Command="ToggleUnderline" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}" InputGestureText="Ctrl+U" />
+                <MenuItem Header="_Bold" Command="ToggleBold" InputGestureText="Ctrl+B" />
+                <MenuItem Header="_Italics" Command="ToggleItalic" InputGestureText="Ctrl+I" />
+                <MenuItem Header="_Underline" Command="{StaticResource ToggleUnderline}" InputGestureText="Ctrl+U" />
                 <MenuItem Header="_Strikethrough" Command="{StaticResource ToggleStrikethrough}" InputGestureText="Ctrl+K" />
                 <Separator />
                 <MenuItem Header="_Font..." />
@@ -95,20 +103,20 @@
                 <Image Width="18" Height="18" Source="{StaticResource document_saveDrawingImage}" />
             </Button>
             <Separator/>
-            <Button x:Name="btnUndo" Command="Undo" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnUndo" Command="Undo">
                 <Image Width="18" Height="18" Source="{StaticResource edit_undoDrawingImage}" />
             </Button>
-            <Button x:Name="btnRedo" Command="Redo" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnRedo" Command="Redo">
                 <Image Width="18" Height="18" Source="{StaticResource edit_redoDrawingImage}" />
             </Button>
             <Separator/>
-            <Button x:Name="btnCut" Command="Cut" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnCut" Command="Cut">
                 <Image Width="18" Height="18" Source="{StaticResource edit_cutDrawingImage}" />
             </Button>
-            <Button x:Name="btnCopy" Command="Copy" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnCopy" Command="Copy">
                 <Image Width="18" Height="18" Source="{StaticResource edit_copyDrawingImage}" />
             </Button>
-            <Button x:Name="btnPaste" Command="Paste" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnPaste" Command="Paste">
                 <Image Width="18" Height="18" Source="{StaticResource edit_pasteDrawingImage}" />
             </Button>
             <Separator/>
@@ -117,16 +125,16 @@
             <Button x:Name="btnSectionBreak" Command="{StaticResource InsertSectionBreak}" Content="SB">
             </Button>
             <Separator/>
-            <Button x:Name="btnAlignLeft" Command="AlignLeft" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnAlignLeft" Command="AlignLeft">
                 <Image Width="18" Height="18" Source="{StaticResource format_justify_leftDrawingImage}" />
             </Button>
-            <Button x:Name="btnAlignCenter" Command="AlignCenter" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnAlignCenter" Command="AlignCenter">
                 <Image Width="18" Height="18" Source="{StaticResource format_justify_centerDrawingImage}" />
             </Button>
-            <Button x:Name="btnAlignRight" Command="AlignRight" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnAlignRight" Command="AlignRight">
                 <Image Width="18" Height="18" Source="{StaticResource format_justify_rightDrawingImage}" />
             </Button>
-            <Button x:Name="btnAlignJustified" Command="AlignJustify" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnAlignJustified" Command="AlignJustify">
                 <Image Width="18" Height="18" Source="{StaticResource format_justify_fillDrawingImage}" />
             </Button>
             <Separator/>
@@ -135,13 +143,13 @@
                 <ComboBoxItem Content="Title"  Tag="title" />
             </ComboBox>
             <Separator/>
-            <Button x:Name="btnBold" Command="ToggleBold" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnBold" Command="ToggleBold">
                 <Image Width="18" Height="18" Source="{StaticResource format_text_boldDrawingImage}" />
             </Button>
-            <Button x:Name="btnItalics" Command="ToggleItalic" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnItalics" Command="ToggleItalic">
                 <Image Width="18" Height="18" Source="{StaticResource format_text_italicDrawingImage}" />
             </Button>
-            <Button x:Name="btnUnderline" Command="ToggleUnderline" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnUnderline" Command="{StaticResource ToggleUnderline}">
                 <Image Width="18" Height="18" Source="{StaticResource format_text_underlineDrawingImage}" />
             </Button>
             <Button x:Name="btnStrikethrough" Command="{StaticResource ToggleStrikethrough}">
@@ -152,10 +160,10 @@
                 <Border x:Name="bColor" Width="18" Height="18" BorderBrush="Black" BorderThickness="1" />
             </Button>
             <Separator/>
-            <Button x:Name="btnFontSmall" Command="DecreaseFontSize" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnFontSmall" Command="DecreaseFontSize">
                 <Image Width="18" Height="18" Source="{StaticResource font_size_downDrawingImage}" />
             </Button>
-            <Button x:Name="btnFontBig" Command="IncreaseFontSize" CommandTarget="{Binding ElementName=rtbDocument, Mode=OneWay}">
+            <Button x:Name="btnFontBig" Command="IncreaseFontSize">
                 <Image Width="18" Height="18" Source="{StaticResource font_size_upDrawingImage}" />
             </Button>
             <ComboBox x:Name="cbFontSize" Width="60" SelectedIndex="0" IsEditable="True" SelectionChanged="cbFontSize_SelectionChanged">
@@ -204,7 +212,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Label Content="XML Preview (TODO: Make editable)" />
-                <TextBox x:Name="tbPreview" IsReadOnly="true" Grid.Row="1" VerticalScrollBarVisibility="Visible" Background="Transparent" />
+                <TextBox x:Name="tbPreview" IsReadOnly="true" Grid.Row="1" VerticalScrollBarVisibility="Visible" Background="Transparent" HorizontalScrollBarVisibility="Auto" />
             </Grid>
         </Border>
         <StatusBar Grid.Row="3" Grid.ColumnSpan="3" MinHeight="18">
