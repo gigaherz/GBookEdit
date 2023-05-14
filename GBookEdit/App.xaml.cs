@@ -101,7 +101,7 @@ namespace GBookEdit
             mainWindow.Show();
             if (openPath != "")
             {
-                mainWindow.OpenFile(openPath);
+                mainWindow.OpenDocument(openPath);
             }
         }
     }

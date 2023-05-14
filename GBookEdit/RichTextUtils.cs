@@ -79,6 +79,34 @@ namespace GBookEdit.WPF
             editor.EndChange();
         }
 
+        public static void SetParagraphType(RichTextBox editor, string type)
+        {
+            if (editor == null) return;
+
+            editor.BeginChange();
+            var sel = editor.Selection;
+            if (sel.IsEmpty)
+            {
+                var para = sel.Start.Paragraph;
+                if (para != null)
+                {
+                    para.Tag = new ParagraphTypeMarker(type);
+                }
+            }
+            else
+            {
+                var start = sel.Start;
+                var end = sel.End;
+                var para = start.Paragraph;
+                while (para != null && para.ContentStart.CompareTo(end) < 0)
+                {
+                    para.Tag = new ParagraphTypeMarker(type);
+                    para = para.NextBlock as Paragraph;
+                }
+            }
+            editor.EndChange();
+        }
+
         private static IEnumerable<TextRange> GetRunsInRange(TextRange range)
         {
             var start = range.Start;

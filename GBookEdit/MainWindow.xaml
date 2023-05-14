@@ -181,7 +181,7 @@
                 <Image Width="18" Height="18" Source="{StaticResource format_text_strikethroughDrawingImage}" />
             </Button>
             <Separator/>
-            <Button x:Name="ColorPopupButton" Click="ChooseColorCommand_Execute" >
+            <Button x:Name="ColorPopupButton" Command="{StaticResource ShowChooseColor}" >
                 <Border x:Name="bColor" Width="18" Height="18" BorderBrush="Black" BorderThickness="1" />
             </Button>
             <Separator/>

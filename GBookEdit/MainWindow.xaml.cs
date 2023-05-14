@@ -138,38 +138,6 @@ namespace GBookEdit.WPF
             Title = (currentFileName != null ? Path.GetFileName(currentFileName) : "(Untitled)") + (Modified ? "*" : "") + titleSuffix;
         }
 
-        #region Change Events
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            if (Modified)
-            {
-                var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-                if (result == MessageBoxResult.Yes)
-                {
-                    SaveCommand_Execute(sender, new RoutedEventArgs());
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    return;
-                }
-            }
-        }
-
-        private void Editor_TextChanged(object sender, RoutedEventArgs e)
-        {
-            previewTimer.Stop();
-            previewTimer.Start();
-            Modified = true;
-            UpdateTitle();
-            UpdateUIFromSelection();
-        }
-
-        private void Editor_SelectionChanged(object sender, RoutedEventArgs e)
-        {
-            UpdateUIFromSelection();
-        }
-
         private void UpdatePreview(object? sender, EventArgs e)
         {
             var fdoc = Editor.Document;
@@ -185,50 +153,6 @@ namespace GBookEdit.WPF
                 xml.WriteTo(xw);
             }
             PreviewTextBox.Text = sb.ToString();
-        }
-
-        private void FontDropdownSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (suppressFontSizeChange) return;
-            if (Editor == null)
-                return;
-            double fontSize = Convert.ToDouble((FontDropdownSize.SelectedItem as ComboBoxItem)?.Content ?? FlowToBook.DefaultFontSize);
-            Editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, fontSize);
-        }
-
-        private void FontDropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // TODO
-        }
-
-        private void ParagraphTypeDropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (Editor == null) return;
-
-            Editor.BeginChange();
-            var sel = Editor.Selection;
-            if (sel.IsEmpty)
-            {
-                var para = sel.Start.Paragraph;
-                if (para != null)
-                {
-                    var type = ((ParagraphTypeDropdown.SelectedItem as ComboBoxItem)?.Tag as string) ?? "normal";
-                    para.Tag = new ParagraphTypeMarker(type);
-                }
-            }
-            else
-            {
-                var start = sel.Start;
-                var end = sel.End;
-                var para = start.Paragraph;
-                while (para != null && para.ContentStart.CompareTo(end) < 0)
-                {
-                    var type = ((ParagraphTypeDropdown.SelectedItem as ComboBoxItem)?.Tag as string) ?? "normal";
-                    para.Tag = new ParagraphTypeMarker(type);
-                    para = para.NextBlock as Paragraph;
-                }
-            }
-            Editor.EndChange();
         }
 
         private void UpdateUIFromSelection()
@@ -294,49 +218,26 @@ namespace GBookEdit.WPF
             }
         }
 
-        #endregion
-
-        #region Command Handlers
-
-        // File menu
-
-        private void NewCommand_Execute(object sender, RoutedEventArgs e)
+        private bool ShowSavePrompt()
         {
             if (Modified)
             {
                 var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
-                    SaveCommand_Execute(sender, e);
+                    SaveDocument(currentFileName);
                 }
                 else if (result == MessageBoxResult.Cancel)
                 {
-                    return;
+                    return false;
                 }
             }
-            Editor.BeginChange();
-            Editor.Document.Blocks.Clear();
-            Editor.FontSize = FlowToBook.DefaultFontSize;
-            Editor.EndChange();
-            currentFileName = null;
-            Modified = false;
-            UpdateTitle();
+            return true;
         }
 
-        private void OpenCommand_Execute(object sender, RoutedEventArgs e)
+        private void ShowOpen()
         {
-            if (Modified)
-            {
-                var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-                if (result == MessageBoxResult.Yes)
-                {
-                    SaveCommand_Execute(sender, e);
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    return;
-                }
-            }
+            if (!ShowSavePrompt()) return;
 
             var dlg = new OpenFileDialog
             {
@@ -347,24 +248,37 @@ namespace GBookEdit.WPF
             };
             if (dlg.ShowDialog() == true)
             {
-                OpenFile(dlg.FileName);
+                OpenDocument(dlg.FileName);
             }
         }
 
-        private void OpenRecent_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        private void ShowSaveAs()
         {
-            e.CanExecute = e.Parameter is RecentFile fi && !string.IsNullOrEmpty(fi.FullName);
-        }
-
-        private void OpenRecent_Execute(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (e.Parameter is RecentFile fi)
+            var dlg = new SaveFileDialog
             {
-                OpenFile(fi.FullName);
+                Filter = "Guidebook files (*.xml)|*.xml|All files (*.*)|*.*",
+                AddExtension = true,
+                Title = "Save Guidebook"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                SaveDocument(dlg.FileName);
             }
         }
 
-        internal void OpenFile(string openPath)
+        private void NewDocument()
+        {
+            if (!ShowSavePrompt()) return;
+            Editor.BeginChange();
+            Editor.Document.Blocks.Clear();
+            Editor.FontSize = FlowToBook.DefaultFontSize;
+            Editor.EndChange();
+            currentFileName = null;
+            Modified = false;
+            UpdateTitle();
+        }
+
+        internal void OpenDocument(string openPath)
         {
             using (var reader = XmlReader.Create(openPath))
             {
@@ -412,38 +326,14 @@ namespace GBookEdit.WPF
             UpdateTitle();
         }
 
-        private void SaveCommand_Execute(object sender, RoutedEventArgs e)
+        private void SaveDocument(string? fileName)
         {
-            if (currentFileName == null)
+            if (fileName == null)
             {
                 ShowSaveAs();
                 return;
             }
 
-            SaveDocument(currentFileName);
-        }
-
-        private void SaveAsCommand_Execute(object sender, RoutedEventArgs e)
-        {
-            ShowSaveAs();
-        }
-
-        private void ShowSaveAs()
-        {
-            var dlg = new SaveFileDialog
-            {
-                Filter = "Guidebook files (*.xml)|*.xml|All files (*.*)|*.*",
-                AddExtension = true,
-                Title = "Save Guidebook"
-            };
-            if (dlg.ShowDialog() == true)
-            {
-                SaveDocument(dlg.FileName);
-            }
-        }
-
-        private void SaveDocument(string fileName)
-        {
             var fdoc = Editor.Document;
             var xml = FlowToBook.ProcessDoc(fdoc, Path.GetFileNameWithoutExtension(fileName));
             using (var xw = XmlWriter.Create(fileName, new XmlWriterSettings()
@@ -464,6 +354,113 @@ namespace GBookEdit.WPF
 
                 UpdateTitle();
             }
+        }
+
+        private void ShowChooseColor()
+        {
+            var sel = Editor.Selection;
+            var existing1 = sel.GetPropertyValue(TextElement.ForegroundProperty);
+            var color = (existing1 == DependencyProperty.UnsetValue ? null : (existing1 as SolidColorBrush)?.Color) ?? Colors.Black;
+            var dialog = new ColorDialog() { Title = "Select Color", SelectedColor = color, Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+            dialog.Apply += (sender, args) => ColorDialog_Apply(args.Color);
+            if (dialog.ShowDialog() == true)
+            {
+                ColorDialog_Apply(dialog.SelectedColor);
+            }
+
+            void ColorDialog_Apply(Color color)
+            {
+                var selection = Editor.Selection;
+                selection.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(color));
+            }
+        }
+
+        #region Change Events
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (!ShowSavePrompt())
+                e.Cancel = true;
+        }
+
+        private void Editor_TextChanged(object sender, RoutedEventArgs e)
+        {
+            previewTimer.Stop();
+            previewTimer.Start();
+            Modified = true;
+            UpdateTitle();
+            UpdateUIFromSelection();
+        }
+
+        private void Editor_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            UpdateUIFromSelection();
+        }
+
+        private void FontDropdownSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (suppressFontSizeChange) return;
+            if (Editor == null)
+                return;
+            double fontSize = Convert.ToDouble((FontDropdownSize.SelectedItem as ComboBoxItem)?.Content ?? FlowToBook.DefaultFontSize);
+            Editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, fontSize);
+        }
+
+        private void FontDropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // TODO
+        }
+
+        private void ParagraphTypeDropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Editor == null)
+                return;
+            var type = ((ParagraphTypeDropdown.SelectedItem as ComboBoxItem)?.Tag as string) ?? "normal";
+            RichTextUtils.SetParagraphType(Editor, type);
+        }
+
+        private void RegisterFileAssociation_Click(object sender, RoutedEventArgs e)
+        {
+            App.RegisterAssociation();
+        }
+
+        #endregion
+
+        #region Command Handlers
+
+        // File menu
+
+        private void NewCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            NewDocument();
+        }
+
+        private void OpenCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            ShowOpen();
+        }
+
+        private void OpenRecent_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.Parameter is RecentFile fi && !string.IsNullOrEmpty(fi.FullName);
+        }
+
+        private void OpenRecent_Execute(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is RecentFile fi)
+            {
+                OpenDocument(fi.FullName);
+            }
+        }
+
+        private void SaveCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            SaveDocument(currentFileName);
+        }
+
+        private void SaveAsCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            ShowSaveAs();
         }
 
         private void ExitCommand_Execute(object sender, RoutedEventArgs e)
@@ -504,21 +501,7 @@ namespace GBookEdit.WPF
 
         private void ChooseColorCommand_Execute(object sender, RoutedEventArgs e)
         {
-            var sel = Editor.Selection;
-            var existing1 = sel.GetPropertyValue(TextElement.ForegroundProperty);
-            var color = (existing1 == DependencyProperty.UnsetValue ? null : (existing1 as SolidColorBrush)?.Color) ?? Colors.Black;
-            var dialog = new ColorDialog() { Title = "Select Color", SelectedColor = color, Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-            dialog.Apply += ColorDialog_Apply;
-            if (dialog.ShowDialog() == true)
-            {
-                ColorDialog_Apply(sender, new ColorEventArgs(e.RoutedEvent, dialog.SelectedColor));
-            }
-
-            void ColorDialog_Apply(object sender, ColorEventArgs e)
-            {
-                var selection = Editor.Selection;
-                selection.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(e.Color));
-            }
+            ShowChooseColor();
         }
 
         private void ClearFormattingCommand_Execute(object sender, RoutedEventArgs e)
@@ -527,10 +510,5 @@ namespace GBookEdit.WPF
         }
 
         #endregion
-
-        private void RegisterFileAssociation_Click(object sender, RoutedEventArgs e)
-        {
-            App.RegisterAssociation();
-        }
     }
 }
