@@ -108,17 +108,17 @@ namespace GBookEdit.WPF
             InitializeComponent();
         }
 
-        private void imgGradient_MouseDown(object sender, MouseButtonEventArgs e)
+        private void GradientImage_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            imgGradient.CaptureMouse();
-            UpdatePosition(e.GetPosition(imgGradient));
+            GradientImage.CaptureMouse();
+            UpdatePosition(e.GetPosition(GradientImage));
         }
 
-        private void imgGradient_MouseMove(object sender, MouseEventArgs e)
+        private void GradientImage_MouseMove(object sender, MouseEventArgs e)
         {
-            if (imgGradient.IsMouseCaptured)
+            if (GradientImage.IsMouseCaptured)
             {
-                UpdatePosition(e.GetPosition(imgGradient));
+                UpdatePosition(e.GetPosition(GradientImage));
             }
         }
 
@@ -140,9 +140,9 @@ namespace GBookEdit.WPF
             }
         }
 
-        private void imgGradient_MouseUp(object sender, MouseButtonEventArgs e)
+        private void GradientImage_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            imgGradient.ReleaseMouseCapture();
+            GradientImage.ReleaseMouseCapture();
         }
 
         private void UpdateMarker()

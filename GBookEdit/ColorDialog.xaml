@@ -65,14 +65,14 @@
             </Grid.ColumnDefinitions>
             <Border x:Name="ColorArea" BorderThickness="1" BorderBrush="{x:Static SystemColors.ActiveBorderBrush}" Margin="4,4,4,4">
                 <Grid>
-                    <Image x:Name="imgGradient" Width="256" Height="256" MouseDown="imgGradient_MouseDown" MouseMove="imgGradient_MouseMove" MouseUp="imgGradient_MouseUp" SizeChanged="imgGradient_SizeChanged"></Image>
+                    <Image x:Name="GradientImage" Width="256" Height="256" MouseDown="GradientImage_MouseDown" MouseMove="GradientImage_MouseMove" MouseUp="GradientImage_MouseUp" SizeChanged="GradientImage_SizeChanged"></Image>
                     <Canvas Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False" > 
-                        <Ellipse x:Name="elColor" Width="5" Height="5" Stroke="Black" StrokeThickness="1" Canvas.Left="0" Canvas.Top="0" />
+                        <Ellipse x:Name="ColorEllipse" Width="5" Height="5" Stroke="Black" StrokeThickness="1" Canvas.Left="0" Canvas.Top="0" />
                     </Canvas>
                 </Grid>
             </Border>
-            <local:ImageSlider x:Name="sldSaturation" Margin="0,4,4,4" Width="18" Orientation="Vertical" Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="255" Value="255"
-                    ValueChanged="sldSaturation_ValueChanged" SizeChanged="sldSaturation_SizeChanged" />
+            <local:ImageSlider x:Name="SaturationSlider" Margin="0,4,4,4" Width="18" Orientation="Vertical" Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="255" Value="255"
+                    ValueChanged="SaturationSlider_ValueChanged" SizeChanged="SaturationSlider_SizeChanged" />
             <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -80,8 +80,8 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="R" Width="18" />
-                <local:ImageSlider x:Name="sldRed" Grid.Column="1" Margin="4,0" Height="18" Minimum="0" Maximum="255" Interval="1" ValueChanged="sldRed_ValueChanged" SizeChanged="sldRed_SizeChanged" />
-                <TextBox x:Name="tbRed" Grid.Column="2" Width="30" Text="255" HorizontalContentAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" TextChanged="tbRed_TextChanged" />
+                <local:ImageSlider x:Name="RedSlider" Grid.Column="1" Margin="4,0" Height="18" Minimum="0" Maximum="255" Interval="1" ValueChanged="RedSlider_ValueChanged" SizeChanged="RedSlider_SizeChanged" />
+                <TextBox x:Name="RedTextBox" Grid.Column="2" Width="30" Text="255" HorizontalContentAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" TextChanged="RedTextBox_TextChanged" />
             </Grid>
             <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
@@ -90,8 +90,8 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="G" Width="18" />
-                <local:ImageSlider x:Name="sldGreen" Grid.Column="1" Margin="4,0" Height="18" Minimum="0" Maximum="255" Interval="1" ValueChanged="sldGreen_ValueChanged" SizeChanged="sldGreen_SizeChanged" />
-                <TextBox x:Name="tbGreen" Grid.Column="2" Width="30" Text="255" HorizontalContentAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" TextChanged="tbGreen_TextChanged" />
+                <local:ImageSlider x:Name="GreenSlider" Grid.Column="1" Margin="4,0" Height="18" Minimum="0" Maximum="255" Interval="1" ValueChanged="GreenSlider_ValueChanged" SizeChanged="GreenSlider_SizeChanged" />
+                <TextBox x:Name="GreenTextBox" Grid.Column="2" Width="30" Text="255" HorizontalContentAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" TextChanged="GreenTextBox_TextChanged" />
             </Grid>
             <Grid Grid.Row="3" Grid.ColumnSpan="2" Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
@@ -100,23 +100,23 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Label Content="B" Width="18" />
-                <local:ImageSlider x:Name="sldBlue" Grid.Column="1" Margin="4,0" Height="18" Minimum="0" Maximum="255" Interval="1" ValueChanged="sldBlue_ValueChanged" SizeChanged="sldBlue_SizeChanged" />
-                <TextBox x:Name="tbBlue" Grid.Column="2" Width="30" Text="255" HorizontalContentAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" TextChanged="tbBlue_TextChanged" />
+                <local:ImageSlider x:Name="BlueSlider" Grid.Column="1" Margin="4,0" Height="18" Minimum="0" Maximum="255" Interval="1" ValueChanged="BlueSlider_ValueChanged" SizeChanged="BlueSlider_SizeChanged" />
+                <TextBox x:Name="BlueTextBox" Grid.Column="2" Width="30" Text="255" HorizontalContentAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" TextChanged="BlueTextBox_TextChanged" />
             </Grid>
             <Grid Grid.Row="4" Grid.ColumnSpan="2" Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="tbColor" Margin="4,0,4,0" Grid.Row="4" Grid.Column="0" TextChanged="tbColor_TextChanged" HorizontalContentAlignment="Right" Text="FFFFFF" Width="60" HorizontalAlignment="Right" />
+                <TextBox x:Name="ColorTextBox" Margin="4,0,4,0" Grid.Row="4" Grid.Column="0" TextChanged="ColorTextBox_TextChanged" HorizontalContentAlignment="Right" Text="FFFFFF" Width="60" HorizontalAlignment="Right" />
                 <Border x:Name="bColor" BorderThickness="1" Width="30" BorderBrush="{x:Static SystemColors.ActiveBorderBrush}" Grid.Column="1" Margin="0,0,4,0" />
 
             </Grid>
         </Grid>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="1" Grid.ColumnSpan="2" Margin="4,0,0,0">
-            <Button x:Name="btnOk" Content="OK" Padding="12,4" MinWidth="60" Margin="0,4,4,4" Click="btnOk_Click" IsDefault="True" />
-            <Button x:Name="btnApply" Content="Apply" Padding="12,4" MinWidth="60" Margin="0,4,4,4" Click="btnApply_Click" />
-            <Button x:Name="btnCancel" Content="Cancel" Padding="12,4" MinWidth="60" Margin="0,4,4,4" Click="btnCancel_Click" IsCancel="True" />
+            <Button x:Name="OkButton" Content="OK" Padding="12,4" MinWidth="60" Margin="0,4,4,4" Click="OkButton_Click" IsDefault="True" />
+            <Button x:Name="ApplyButton" Content="Apply" Padding="12,4" MinWidth="60" Margin="0,4,4,4" Click="ApplyButton_Click" />
+            <Button x:Name="CancelButton" Content="Cancel" Padding="12,4" MinWidth="60" Margin="0,4,4,4" Click="CancelButton_Click" IsCancel="True" />
         </StackPanel>
     </Grid>
 </Window>

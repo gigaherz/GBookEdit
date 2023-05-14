@@ -9,7 +9,7 @@
              DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Border Background="{x:Static SystemColors.ControlBrush}" BorderBrush="{x:Static SystemColors.ActiveBorderBrush}" BorderThickness="1" ClipToBounds="True">
         <Grid x:Name="sizeGrid" ClipToBounds="True">
-            <Image x:Name="imgGradient" Source="{Binding ImageSource}" MouseDown="imgGradient_MouseDown" MouseMove="imgGradient_MouseMove" MouseUp="imgGradient_MouseUp" />
+            <Image x:Name="GradientImage" Source="{Binding ImageSource}" MouseDown="GradientImage_MouseDown" MouseMove="GradientImage_MouseMove" MouseUp="GradientImage_MouseUp" />
             <Canvas IsHitTestVisible="False">
                 <Border x:Name="bMarker" Canvas.Left="10" Canvas.Top="10" BorderBrush="Black" BorderThickness="1" />
             </Canvas>

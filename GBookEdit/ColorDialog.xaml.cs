@@ -1,22 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.Xml.Linq;
-using Windows.UI;
-using static GBookEdit.WPF.ColorDialog;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Color = System.Windows.Media.Color;
 
 namespace GBookEdit.WPF
@@ -56,8 +43,8 @@ namespace GBookEdit.WPF
 
         public bool ApplyVisible
         {
-            get { return btnApply.Visibility == Visibility.Visible; }
-            set { btnApply.Visibility = value ? Visibility.Visible : Visibility.Collapsed; }
+            get { return ApplyButton.Visibility == Visibility.Visible; }
+            set { ApplyButton.Visibility = value ? Visibility.Visible : Visibility.Collapsed; }
         }
 
         public event ColorEventHandler? SelectedColorChanged;
@@ -102,24 +89,24 @@ namespace GBookEdit.WPF
                 if (v > (1.0 / 255.0)) _saturation = s;
                 _value = v;
 
-                elColor.SetValue(Canvas.LeftProperty, _hue * imgGradient.ActualWidth / 360 - elColor.ActualWidth / 2);
-                elColor.SetValue(Canvas.TopProperty, (1 - _value) * imgGradient.ActualHeight - elColor.ActualHeight / 2);
+                ColorEllipse.SetValue(Canvas.LeftProperty, _hue * GradientImage.ActualWidth / 360 - ColorEllipse.ActualWidth / 2);
+                ColorEllipse.SetValue(Canvas.TopProperty, (1 - _value) * GradientImage.ActualHeight - ColorEllipse.ActualHeight / 2);
 
                 if (v > 0)
                 {
-                    var sat = _saturation * sldSaturation.Maximum;
-                    if ((int)sat != (int)sldSaturation.Value)
+                    var sat = _saturation * SaturationSlider.Maximum;
+                    if ((int)sat != (int)SaturationSlider.Value)
                     {
-                        sldSaturation.Value = sat;
+                        SaturationSlider.Value = sat;
                     }
                 }
             }
 
-            sldRed.Value = SelectedColor.R;
-            sldGreen.Value = SelectedColor.G;
-            sldBlue.Value = SelectedColor.B;
+            RedSlider.Value = SelectedColor.R;
+            GreenSlider.Value = SelectedColor.G;
+            BlueSlider.Value = SelectedColor.B;
             bColor.Background = new SolidColorBrush(SelectedColor);
-            tbColor.Text = $"{SelectedColor.R:X2}{SelectedColor.G:X2}{SelectedColor.B:X2}";
+            ColorTextBox.Text = $"{SelectedColor.R:X2}{SelectedColor.G:X2}{SelectedColor.B:X2}";
 
             SelectedColorChanged?.Invoke(this, new ColorEventArgs(ColorChangeRoutedEvent, SelectedColor));
 
@@ -148,87 +135,87 @@ namespace GBookEdit.WPF
             RecreateBlueGradient();
         }
 
-        private void imgGradient_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void GradientImage_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             RecreateMainGradient();
         }
 
-        private void sldSaturation_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void SaturationSlider_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             RecreateSaturationGradient();
         }
 
-        private void sldRed_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void RedSlider_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             RecreateRedGradient();
         }
 
-        private void sldGreen_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void GreenSlider_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             RecreateGreenGradient();
         }
 
-        private void sldBlue_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void BlueSlider_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             RecreateBlueGradient();
         }
 
         private void RecreateMainGradient()
         {
-            var w = (int)(imgGradient.ActualWidth != 0 ? imgGradient.ActualWidth : imgGradient.Width);
-            var h = (int)(imgGradient.ActualHeight != 0 ? imgGradient.ActualHeight : imgGradient.Height);
+            var w = (int)(GradientImage.ActualWidth != 0 ? GradientImage.ActualWidth : GradientImage.Width);
+            var h = (int)(GradientImage.ActualHeight != 0 ? GradientImage.ActualHeight : GradientImage.Height);
 
             _bitmapMain = new WriteableBitmap(w, h, 1, 1, PixelFormats.Bgra32, null);
 
-            imgGradient.Source = _bitmapMain;
+            GradientImage.Source = _bitmapMain;
 
             UpdateMainGradient();
         }
 
         private void RecreateSaturationGradient()
         {
-            var w = (int)sldSaturation.ContentWidth;
-            var h = (int)sldSaturation.ContentHeight;
+            var w = (int)SaturationSlider.ContentWidth;
+            var h = (int)SaturationSlider.ContentHeight;
 
             _bitmapSaturation = new WriteableBitmap(w, h, 1, 1, PixelFormats.Bgra32, null);
 
-            sldSaturation.ImageSource = _bitmapSaturation;
+            SaturationSlider.ImageSource = _bitmapSaturation;
 
             UpdateSaturationGradient();
         }
 
         private void RecreateRedGradient()
         {
-            var w = (int)sldRed.ContentWidth;
-            var h = (int)sldRed.ContentHeight;
+            var w = (int)RedSlider.ContentWidth;
+            var h = (int)RedSlider.ContentHeight;
 
             _bitmapRed = new WriteableBitmap(w, h, 1, 1, PixelFormats.Bgra32, null);
 
-            sldRed.ImageSource = _bitmapRed;
+            RedSlider.ImageSource = _bitmapRed;
 
             UpdateRedGradient();
         }
 
         private void RecreateGreenGradient()
         {
-            var w = (int)sldGreen.ContentWidth;
-            var h = (int)sldGreen.ContentHeight;
+            var w = (int)GreenSlider.ContentWidth;
+            var h = (int)GreenSlider.ContentHeight;
 
             _bitmapGreen = new WriteableBitmap(w, h, 1, 1, PixelFormats.Bgra32, null);
 
-            sldGreen.ImageSource = _bitmapGreen;
+            GreenSlider.ImageSource = _bitmapGreen;
 
             UpdateGreenGradient();
         }
 
         private void RecreateBlueGradient()
         {
-            var w = (int)sldBlue.ContentWidth;
-            var h = (int)sldBlue.ContentHeight;
+            var w = (int)BlueSlider.ContentWidth;
+            var h = (int)BlueSlider.ContentHeight;
 
             _bitmapBlue = new WriteableBitmap(w, h, 1, 1, PixelFormats.Bgra32, null);
 
-            sldBlue.ImageSource = _bitmapBlue;
+            BlueSlider.ImageSource = _bitmapBlue;
 
             UpdateBlueGradient();
         }
@@ -240,7 +227,7 @@ namespace GBookEdit.WPF
             var stride = _bitmapMain.BackBufferStride;
             var pixels = new int[_bitmapMain.PixelHeight, _bitmapMain.PixelWidth];
 
-            var s = sldSaturation.Value / sldSaturation.Maximum;
+            var s = SaturationSlider.Value / SaturationSlider.Maximum;
 
             for (int py = 0; py < _bitmapMain.PixelHeight; py++)
             {
@@ -355,9 +342,9 @@ namespace GBookEdit.WPF
             _bitmapBlue.WritePixels(new Int32Rect(0, 0, _bitmapBlue.PixelWidth, _bitmapBlue.PixelHeight), pixels, stride, 0);
         }
 
-        private void sldSaturation_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void SaturationSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            var s = sldSaturation.Value / sldSaturation.Maximum;
+            var s = SaturationSlider.Value / SaturationSlider.Maximum;
             var (r, g, b) = HSV.ToRGB(_hue, s, _value);
             _saturation = s;
             SetColorSuppressingReentrancy(Color.FromRgb(r, g, b), true);
@@ -373,19 +360,19 @@ namespace GBookEdit.WPF
             updateOriginHsv = false;
         }
 
-        private void btnOk_Click(object sender, RoutedEventArgs e)
+        private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             OnApply(this, e);
             DialogResult = true;
             Close();
         }
 
-        private void btnApply_Click(object sender, RoutedEventArgs e)
+        private void ApplyButton_Click(object sender, RoutedEventArgs e)
         {
             OnApply(this, e);
         }
 
-        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
             Close();
@@ -399,29 +386,29 @@ namespace GBookEdit.WPF
                 SelectedColor = b.Color;
         }
 
-        private void imgGradient_MouseDown(object sender, MouseButtonEventArgs e)
+        private void GradientImage_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            CalculateColorFromGradient(e.GetPosition(imgGradient));
-            imgGradient.CaptureMouse();
+            CalculateColorFromGradient(e.GetPosition(GradientImage));
+            GradientImage.CaptureMouse();
         }
 
-        private void imgGradient_MouseMove(object sender, MouseEventArgs e)
+        private void GradientImage_MouseMove(object sender, MouseEventArgs e)
         {
-            if (imgGradient.IsMouseCaptured)
+            if (GradientImage.IsMouseCaptured)
             {
-                CalculateColorFromGradient(e.GetPosition(imgGradient));
+                CalculateColorFromGradient(e.GetPosition(GradientImage));
             }
         }
 
-        private void imgGradient_MouseUp(object sender, MouseButtonEventArgs e)
+        private void GradientImage_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            imgGradient.ReleaseMouseCapture();
+            GradientImage.ReleaseMouseCapture();
         }
 
         private void CalculateColorFromGradient(Point point)
         {
-            var x = Clamp(point.X / imgGradient.ActualWidth, 0, 1);
-            var y = Clamp(point.Y / imgGradient.ActualHeight, 0, 1);
+            var x = Clamp(point.X / GradientImage.ActualWidth, 0, 1);
+            var y = Clamp(point.Y / GradientImage.ActualHeight, 0, 1);
 
             var h = Clamp(x * 360, 0, 360);
             var s = _saturation;
@@ -434,8 +421,8 @@ namespace GBookEdit.WPF
 
             SetColorSuppressingReentrancy(Color.FromRgb(r, g, b), true);
 
-            elColor.SetValue(Canvas.LeftProperty, Clamp(point.X, 0, imgGradient.ActualWidth) - elColor.ActualWidth / 2);
-            elColor.SetValue(Canvas.TopProperty, Clamp(point.Y, 0, imgGradient.ActualHeight) - elColor.ActualHeight / 2);
+            ColorEllipse.SetValue(Canvas.LeftProperty, Clamp(point.X, 0, GradientImage.ActualWidth) - ColorEllipse.ActualWidth / 2);
+            ColorEllipse.SetValue(Canvas.TopProperty, Clamp(point.Y, 0, GradientImage.ActualHeight) - ColorEllipse.ActualHeight / 2);
         }
 
         private double Clamp(double v, double min, double max)
@@ -443,54 +430,54 @@ namespace GBookEdit.WPF
             return Math.Min(Math.Max(v, min), max);
         }
 
-        private void sldRed_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void RedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            tbRed.Text = ((int)sldRed.Value).ToString();
-            var color = Color.FromRgb((byte)sldRed.Value, SelectedColor.G, SelectedColor.B);
+            RedTextBox.Text = ((int)RedSlider.Value).ToString();
+            var color = Color.FromRgb((byte)RedSlider.Value, SelectedColor.G, SelectedColor.B);
             SetColorSuppressingReentrancy(color);
         }
 
-        private void tbRed_TextChanged(object sender, TextChangedEventArgs e)
+        private void RedTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (byte.TryParse(tbRed.Text, out var value))
+            if (byte.TryParse(RedTextBox.Text, out var value))
             {
-                sldRed.Value = value;
+                RedSlider.Value = value;
             }
         }
 
-        private void sldGreen_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void GreenSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            tbGreen.Text = ((int)sldGreen.Value).ToString();
-            var color = Color.FromRgb(SelectedColor.R, (byte)sldGreen.Value, SelectedColor.B);
+            GreenTextBox.Text = ((int)GreenSlider.Value).ToString();
+            var color = Color.FromRgb(SelectedColor.R, (byte)GreenSlider.Value, SelectedColor.B);
             SetColorSuppressingReentrancy(color);
         }
 
-        private void tbGreen_TextChanged(object sender, TextChangedEventArgs e)
+        private void GreenTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (byte.TryParse(tbGreen.Text, out var value))
+            if (byte.TryParse(GreenTextBox.Text, out var value))
             {
-                sldGreen.Value = value;
+                GreenSlider.Value = value;
             }
         }
 
-        private void sldBlue_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void BlueSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            tbBlue.Text = ((int)sldBlue.Value).ToString();
-            var color = Color.FromRgb(SelectedColor.R, SelectedColor.G, (byte)sldBlue.Value);
+            BlueTextBox.Text = ((int)BlueSlider.Value).ToString();
+            var color = Color.FromRgb(SelectedColor.R, SelectedColor.G, (byte)BlueSlider.Value);
             SetColorSuppressingReentrancy(color);
         }
 
-        private void tbBlue_TextChanged(object sender, TextChangedEventArgs e)
+        private void BlueTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (byte.TryParse(tbBlue.Text, out var value))
+            if (byte.TryParse(BlueTextBox.Text, out var value))
             {
-                sldBlue.Value = value;
+                BlueSlider.Value = value;
             }
         }
 
-        private void tbColor_TextChanged(object sender, TextChangedEventArgs e)
+        private void ColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (BookToFlow.TryParseColor(tbColor.Text, out var color, requireHash: false))
+            if (BookToFlow.TryParseColor(ColorTextBox.Text, out var color, requireHash: false))
             {
                 SelectedColor = color;
             }
