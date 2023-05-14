@@ -1,5 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using System.Xml;
 
@@ -19,17 +22,15 @@ namespace GBookEdit.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(250) };
+        private readonly DispatcherTimer previewTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
+
+        public ObservableCollection<RecentFile> RecentFiles {get; } = new();
 
         private readonly string titleSuffix;
         private string? currentFileName;
-        private bool modified;
         private bool suppressFontSizeChange = false;
 
-        private bool Modified()
-        {
-            return modified; // TODO: maybe check if the document is different from the last saved version?
-        }
+        private bool Modified { get; set; }
 
         public MainWindow()
         {
@@ -37,11 +38,9 @@ namespace GBookEdit.WPF
 
             var appname = Assembly.GetExecutingAssembly().GetName().Name?.ToString() ?? "GBookEdit";
             var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0";
-            titleSuffix = appname + " " + version;
+            titleSuffix = $" - {appname} {version}";
 
-            Editor.InputBindings.Clear();
-            KeyBinding keyBinding = new(ApplicationCommands.NotACommand, Key.U, ModifierKeys.Control);
-            Editor.InputBindings.Add(keyBinding);
+            Editor.InputBindings.Add(new KeyBinding(ApplicationCommands.NotACommand, Key.U, ModifierKeys.Control));
 
             Editor.Document.FontSize = FlowToBook.DefaultFontSize;
             Editor.Document.FontFamily = new FontFamily(new Uri("pack://application:,,,/"), "./Fonts/#Minecraft");
@@ -52,23 +51,116 @@ namespace GBookEdit.WPF
                 var t = fontFamily;
             }
 
-            timer.Tick += UpdatePreview;
+            previewTimer.Tick += UpdatePreview;
 
-            modified = false;
+            LoadRecents();
+
+            JumpList appJumpList = App.AppJumpList;
+            appJumpList.JumpItemsRejected += (s, e) =>
+            {
+                foreach (var item in e.RejectedItems.OfType<JumpPath>())
+                {
+                    RecentFiles.Remove(new RecentFile(item.Path));
+                    SaveRecents();
+                }
+            };
+            appJumpList.JumpItemsRemovedByUser += (s, e) =>
+            {
+                foreach(var item in e.RemovedItems.OfType<JumpPath>())
+                {
+                    RecentFiles.Remove(new RecentFile(item.Path));
+                    SaveRecents();
+                }
+            };
+
+
+            Modified = false;
 
             UpdateTitle();
         }
 
+        private void LoadRecents()
+        {
+            var user = Registry.CurrentUser;
+            using RegistryKey? software = user.OpenSubKey("Software"),
+                    gbookedit = software?.OpenSubKey("GBookEdit"),
+                    recents = gbookedit?.OpenSubKey("RecentList");
+            if (recents != null)
+            {;
+                foreach (var (_, path) in recents.GetValueNames().Select(name => {
+                    int? index = int.TryParse(name, out var n) ? n : null;
+                    return (index, path: index != null ? recents.GetValue(name)?.ToString() : null);
+                }).Where(kv => kv.index != null && !string.IsNullOrEmpty(kv.path) && File.Exists(kv.path))
+                .OrderBy(kv => kv.index))
+                {
+                    RecentFiles.Add(new RecentFile(path!));
+                }
+            }
+        }
+
+        private void SaveRecents()
+        {
+            var user = Registry.CurrentUser;
+            using RegistryKey software = user.CreateSubKey("Software"),
+                    gbookedit = software.CreateSubKey("GBookEdit"),
+                    recents = gbookedit.CreateSubKey("RecentList");
+            var set = recents.GetValueNames().ToHashSet();
+            for(int i=0;i<RecentFiles.Count;i++)
+            {
+                var path = RecentFiles[i].FullName;
+                string key = i.ToString();
+                recents.SetValue(key, path);
+                set.Remove(key);
+            }
+            foreach(var key in set)
+            {
+                if (key != "")
+                    recents.DeleteValue(key);
+            }
+        }
+
+        private void MakeRecent(string fileName)
+        {
+            RecentFiles.Remove(new RecentFile(fileName));
+            RecentFiles.Insert(0, new RecentFile(fileName));
+            App.AddRecent(fileName);
+
+            if (RecentFiles.Count > 10)
+            {
+                RecentFiles.RemoveAt(RecentFiles.Count - 1);
+            }
+
+            SaveRecents();
+        }
+
         private void UpdateTitle()
         {
-            Title = (currentFileName != null ? Path.GetFileName(currentFileName) : "(Untitled)") + (Modified() ? "*" : "") + " - " + titleSuffix;
+            Title = (currentFileName != null ? Path.GetFileName(currentFileName) : "(Untitled)") + (Modified ? "*" : "") + titleSuffix;
+        }
+
+        #region Change Events
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (Modified)
+            {
+                var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    SaveCommand_Execute(sender, new RoutedEventArgs());
+                }
+                else if (result == MessageBoxResult.Cancel)
+                {
+                    return;
+                }
+            }
         }
 
         private void Editor_TextChanged(object sender, RoutedEventArgs e)
         {
-            timer.Stop();
-            timer.Start();
-            modified = true;
+            previewTimer.Stop();
+            previewTimer.Start();
+            Modified = true;
             UpdateTitle();
             UpdateUIFromSelection();
         }
@@ -95,21 +187,6 @@ namespace GBookEdit.WPF
             PreviewTextBox.Text = sb.ToString();
         }
 
-        private void FontDropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // TODO
-        }
-
-        private void ToggleUnderlineCommand_Execute(object sender, RoutedEventArgs e)
-        {
-            RichTextUtils.ToggleUnderline(Editor);
-        }
-
-        private void ToggleStrikethroughCommand_Execute(object sender, RoutedEventArgs e)
-        {
-            RichTextUtils.ToggleStrikethrough(Editor);
-        }
-
         private void FontDropdownSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (suppressFontSizeChange) return;
@@ -119,43 +196,9 @@ namespace GBookEdit.WPF
             Editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, fontSize);
         }
 
-        private void ChooseColorCommand_Execute(object sender, RoutedEventArgs e)
+        private void FontDropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var sel = Editor.Selection;
-            var existing1 = sel.GetPropertyValue(TextElement.ForegroundProperty);
-            var color = (existing1 == DependencyProperty.UnsetValue ? null : (existing1 as SolidColorBrush)?.Color) ?? Colors.Black;
-            var dialog = new ColorDialog() { Title = "Select Color", SelectedColor = color, Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-            dialog.Apply += ColorDialog_Apply;
-            if (dialog.ShowDialog() == true)
-            {
-                ColorDialog_Apply(sender, new ColorEventArgs(e.RoutedEvent, dialog.SelectedColor));
-            }
-
-            void ColorDialog_Apply(object sender, ColorEventArgs e)
-            {
-                var selection = Editor.Selection;
-                selection.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(e.Color));
-            }
-        }
-
-        private void ClearFormattingCommand_Execute(object sender, RoutedEventArgs e)
-        {
-            Editor.Selection.ClearAllProperties();
-        }
-
-        private void PastePlainCommand_Execute(object sender, RoutedEventArgs e)
-        {
-            RichTextUtils.PastePlain(Editor);
-        }
-
-        private void InsertChapterBreakCommand_Execute(object sender, RoutedEventArgs e)
-        {
-            RichTextUtils.InsertChapterBreak(Editor);
-        }
-
-        private void InsertSectionBreakCommand_Execute(object sender, RoutedEventArgs e)
-        {
-            RichTextUtils.InsertSectionBreak(Editor);
+            // TODO
         }
 
         private void ParagraphTypeDropdown_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -251,9 +294,15 @@ namespace GBookEdit.WPF
             }
         }
 
+        #endregion
+
+        #region Command Handlers
+
+        // File menu
+
         private void NewCommand_Execute(object sender, RoutedEventArgs e)
         {
-            if (Modified())
+            if (Modified)
             {
                 var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
@@ -270,13 +319,13 @@ namespace GBookEdit.WPF
             Editor.FontSize = FlowToBook.DefaultFontSize;
             Editor.EndChange();
             currentFileName = null;
-            modified = false;
+            Modified = false;
             UpdateTitle();
         }
 
         private void OpenCommand_Execute(object sender, RoutedEventArgs e)
         {
-            if (Modified())
+            if (Modified)
             {
                 var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
@@ -298,76 +347,88 @@ namespace GBookEdit.WPF
             };
             if (dlg.ShowDialog() == true)
             {
-                using (var reader = XmlReader.Create(dlg.FileName))
-                {
-                    Editor.BeginChange();
-                    Editor.Document.Blocks.Clear();
-                    BookToFlow.Load(Editor.Document, reader, out var warnings, out var errors);
-                    Editor.EndChange();
-
-                    if (errors.Count > 0)
-                    {
-                        var sb = new StringBuilder();
-                        sb.AppendLine("The following errors were encountered while loading the file:");
-                        var limit = Math.Min(errors.Count, 10);
-                        for (int i = 0; i < limit; i++)
-                        {
-                            string? err = errors[i];
-                            sb.AppendLine(err.ToString());
-                        }
-                        if (errors.Count > limit)
-                        {
-                            sb.AppendLine("And " + (errors.Count - limit) + " more...");
-                        }
-                        MessageBox.Show(sb.ToString(), "Errors", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                    else if (warnings.Count > 0)
-                    {
-                        var sb = new StringBuilder();
-                        sb.AppendLine("The following warnings were encountered while loading the file:");
-                        var limit = Math.Min(warnings.Count, 10);
-                        for (int i = 0; i < limit; i++)
-                        {
-                            string? warn = warnings[i];
-                            sb.AppendLine(warn.ToString());
-                        }
-                        if (warnings.Count > limit)
-                        {
-                            sb.AppendLine("And " + (warnings.Count - limit) + " more...");
-                        }
-                        MessageBox.Show(sb.ToString(), "Warnings", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    }
-                }
-                modified = false;
-                currentFileName = dlg.FileName;
-                UpdateTitle();
+                OpenFile(dlg.FileName);
             }
+        }
+
+        private void OpenRecent_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.Parameter is RecentFile fi && !string.IsNullOrEmpty(fi.FullName);
+        }
+
+        private void OpenRecent_Execute(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is RecentFile fi)
+            {
+                OpenFile(fi.FullName);
+            }
+        }
+
+        internal void OpenFile(string openPath)
+        {
+            using (var reader = XmlReader.Create(openPath))
+            {
+                Editor.BeginChange();
+                Editor.Document.Blocks.Clear();
+                BookToFlow.Load(Editor.Document, reader, out var warnings, out var errors);
+                Editor.EndChange();
+
+                if (errors.Count > 0)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine("The following errors were encountered while loading the file:");
+                    var limit = Math.Min(errors.Count, 10);
+                    for (int i = 0; i < limit; i++)
+                    {
+                        string? err = errors[i];
+                        sb.AppendLine(err.ToString());
+                    }
+                    if (errors.Count > limit)
+                    {
+                        sb.AppendLine("And " + (errors.Count - limit) + " more...");
+                    }
+                    MessageBox.Show(sb.ToString(), "Errors", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else if (warnings.Count > 0)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine("The following warnings were encountered while loading the file:");
+                    var limit = Math.Min(warnings.Count, 10);
+                    for (int i = 0; i < limit; i++)
+                    {
+                        string? warn = warnings[i];
+                        sb.AppendLine(warn.ToString());
+                    }
+                    if (warnings.Count > limit)
+                    {
+                        sb.AppendLine("And " + (warnings.Count - limit) + " more...");
+                    }
+                    MessageBox.Show(sb.ToString(), "Warnings", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            Modified = false;
+            currentFileName = openPath;
+            MakeRecent(openPath);
+            UpdateTitle();
         }
 
         private void SaveCommand_Execute(object sender, RoutedEventArgs e)
         {
             if (currentFileName == null)
             {
-                SaveAsCommand_Execute(sender, e);
+                ShowSaveAs();
                 return;
             }
 
-            var fdoc = Editor.Document;
-            var xml = FlowToBook.ProcessDoc(fdoc, System.IO.Path.GetFileNameWithoutExtension(currentFileName));
-            using (var xw = XmlWriter.Create(currentFileName, new XmlWriterSettings()
-            {
-                Indent = true,
-                IndentChars = "  ",
-                NewLineChars = Environment.NewLine,
-            }))
-            {
-                xml.WriteTo(xw);
-                modified = false;
-                UpdateTitle();
-            }
+            SaveDocument(currentFileName);
         }
 
         private void SaveAsCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            ShowSaveAs();
+        }
+
+        private void ShowSaveAs()
         {
             var dlg = new SaveFileDialog
             {
@@ -377,8 +438,31 @@ namespace GBookEdit.WPF
             };
             if (dlg.ShowDialog() == true)
             {
-                currentFileName = dlg.FileName;
-                SaveCommand_Execute(sender, e);
+                SaveDocument(dlg.FileName);
+            }
+        }
+
+        private void SaveDocument(string fileName)
+        {
+            var fdoc = Editor.Document;
+            var xml = FlowToBook.ProcessDoc(fdoc, Path.GetFileNameWithoutExtension(fileName));
+            using (var xw = XmlWriter.Create(fileName, new XmlWriterSettings()
+            {
+                Indent = true,
+                IndentChars = "  ",
+                NewLineChars = Environment.NewLine,
+            }))
+            {
+                xml.WriteTo(xw);
+                Modified = false;
+
+                if (currentFileName != fileName)
+                {
+                    currentFileName = fileName;
+                    MakeRecent(fileName);
+                }
+
+                UpdateTitle();
             }
         }
 
@@ -387,20 +471,66 @@ namespace GBookEdit.WPF
             Close();
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        // Edit menu
+
+        private void PastePlainCommand_Execute(object sender, RoutedEventArgs e)
         {
-            if (Modified())
+            RichTextUtils.PastePlain(Editor);
+        }
+
+        // Insert menu
+
+        private void InsertChapterBreakCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            RichTextUtils.InsertChapterBreak(Editor);
+        }
+
+        private void InsertSectionBreakCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            RichTextUtils.InsertSectionBreak(Editor);
+        }
+
+        // Format menu
+
+        private void ToggleUnderlineCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            RichTextUtils.ToggleUnderline(Editor);
+        }
+
+        private void ToggleStrikethroughCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            RichTextUtils.ToggleStrikethrough(Editor);
+        }
+
+        private void ChooseColorCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            var sel = Editor.Selection;
+            var existing1 = sel.GetPropertyValue(TextElement.ForegroundProperty);
+            var color = (existing1 == DependencyProperty.UnsetValue ? null : (existing1 as SolidColorBrush)?.Color) ?? Colors.Black;
+            var dialog = new ColorDialog() { Title = "Select Color", SelectedColor = color, Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+            dialog.Apply += ColorDialog_Apply;
+            if (dialog.ShowDialog() == true)
             {
-                var result = MessageBox.Show("Do you want to save your changes?", "Save changes?", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-                if (result == MessageBoxResult.Yes)
-                {
-                    SaveCommand_Execute(sender, new RoutedEventArgs());
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    return;
-                }
+                ColorDialog_Apply(sender, new ColorEventArgs(e.RoutedEvent, dialog.SelectedColor));
             }
+
+            void ColorDialog_Apply(object sender, ColorEventArgs e)
+            {
+                var selection = Editor.Selection;
+                selection.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(e.Color));
+            }
+        }
+
+        private void ClearFormattingCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            Editor.Selection.ClearAllProperties();
+        }
+
+        #endregion
+
+        private void RegisterFileAssociation_Click(object sender, RoutedEventArgs e)
+        {
+            App.RegisterAssociation();
         }
     }
 }

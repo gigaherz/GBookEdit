@@ -8,6 +8,7 @@
     <AssemblyName>GBookEdit</AssemblyName>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <ApplicationIcon>Icons\Icon.ico</ApplicationIcon>
+    <StartupObject>GBookEdit.App</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

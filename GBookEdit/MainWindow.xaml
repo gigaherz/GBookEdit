@@ -12,14 +12,17 @@
                 <ResourceDictionary Source="TangoIcons.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <RoutedCommand x:Key="OpenRecent" />
+            <RoutedCommand x:Key="Exit" />
             <RoutedCommand x:Key="PastePlain" />
-            <RoutedCommand x:Key="ToggleStrikethrough" />
-            <RoutedCommand x:Key="ClearFormatting" />
+            <RoutedCommand x:Key="InsertImage" />
+            <RoutedCommand x:Key="InsertLink" />
             <RoutedCommand x:Key="InsertSectionBreak" />
             <RoutedCommand x:Key="InsertChapterBreak" />
-            <RoutedCommand x:Key="ShowChooseColor" />
             <RoutedCommand x:Key="ToggleUnderline" />
-            <RoutedCommand x:Key="Exit" />
+            <RoutedCommand x:Key="ToggleStrikethrough" />
+            <RoutedCommand x:Key="ClearFormatting" />
+            <RoutedCommand x:Key="ShowChooseColor" />
         </ResourceDictionary>
     </Window.Resources>
     <Window.InputBindings>
@@ -39,6 +42,7 @@
     <Window.CommandBindings>
         <CommandBinding Command="New" Executed="NewCommand_Execute" />
         <CommandBinding Command="Open" Executed="OpenCommand_Execute" />
+        <CommandBinding Command="{StaticResource OpenRecent}" Executed="OpenRecent_Execute" CanExecute="OpenRecent_CanExecute" />
         <CommandBinding Command="Save" Executed="SaveCommand_Execute" />
         <CommandBinding Command="SaveAs" Executed="SaveAsCommand_Execute" />
         <CommandBinding Command="{StaticResource Exit}" Executed="ExitCommand_Execute" />
@@ -66,17 +70,35 @@
         <Menu Grid.Row="0" Grid.ColumnSpan="3">
             <MenuItem x:Name="FileMenu" Header="_File">
                 <MenuItem x:Name="NewMenuItem" Header="_New..." Command="New" InputGestureText="Ctrl+N" />
+                <Separator />
                 <MenuItem x:Name="OpenMenuItem" Header="_Open..." Command="Open" InputGestureText="Ctrl+O" />
+                <MenuItem x:Name="RecentMenuItem" Header="Open _Recent" ItemsSource="{Binding RecentFiles}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding Name}"/>
+                            <Setter Property="Command" Value="{StaticResource OpenRecent}"/>
+                            <Setter Property="CommandParameter" Value="{Binding .}"/>
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <Separator />
                 <MenuItem x:Name="SaveMenuItem" Header="_Save" Command="Save" InputGestureText="Ctrl+S" />
                 <MenuItem x:Name="SaveAsMenuItem" Header="Save _As..." Command="SaveAs" InputGestureText="Ctrl+Shift+S" />
                 <Separator />
                 <MenuItem x:Name="ExitMenuItem" Header="E_xit" Command="{StaticResource Exit}" InputGestureText="Alt+F4" />
             </MenuItem>
-            <MenuItem x:Name="EditMenu" Header="Edit">
+            <MenuItem x:Name="EditMenu" Header="_Edit">
                 <MenuItem x:Name="CutMenuItem" Header="Cu_t" Command="Cut" InputGestureText="Ctrl+X" />
                 <MenuItem x:Name="CopyMenuItem" Header="_Copy" Command="Copy" InputGestureText="Ctrl+C" />
                 <MenuItem x:Name="PasteMenuItem" Header="_Paste" Command="Paste" InputGestureText="Ctrl+V" />
                 <MenuItem x:Name="PastePlainMenuItem" Header="Paste P_lain" Command="{StaticResource PastePlain}" InputGestureText="Ctrl+Shift+V" />
+            </MenuItem>
+            <MenuItem x:Name="InsertMenu" Header="_Insert">
+                <MenuItem x:Name="InsertImageMenuItem" Header="Insert/Edit Image..." Command="{StaticResource InsertImage}" />
+                <MenuItem x:Name="InsertLinkMenuItem" Header="Make/Edit Link..." Command="{StaticResource InsertLink}" />
+                <Separator />
+                <MenuItem x:Name="InsertChapterBreakMenuItem" Header="Insert Chapter Break" Command="{StaticResource InsertChapterBreak}" />
+                <MenuItem x:Name="InsertSectionBreakMenuItem" Header="Insert Section Break" Command="{StaticResource InsertSectionBreak}" />
             </MenuItem>
             <MenuItem x:Name="FormatMenu" Header="_Format">
                 <MenuItem x:Name="ToggleBoldMenuItem" Header="_Bold" Command="ToggleBold" InputGestureText="Ctrl+B" />
@@ -90,6 +112,8 @@
                 <MenuItem x:Name="ClearFormatMenuItem" Header="C_lear Formatting" />
             </MenuItem>
             <MenuItem x:Name="OptionsMenu" Header="_Options">
+                <MenuItem x:Name="RegisterFileAssociation" Header="Register File Handler" Click="RegisterFileAssociation_Click" />
+                <Separator />
                 <MenuItem x:Name="PreferencesMenuItem" Header="_Preferences" />
             </MenuItem>
         </Menu>
@@ -206,14 +230,9 @@
             </FlowDocument>
         </RichTextBox>
         <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="2" />
-        <Border Grid.Column="2" Grid.Row="2" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+        <Border Grid.Column="2" Grid.Row="2" Background="{StaticResource {x:Static SystemColors.ControlBrushKey}}">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Label Content="XML Preview (TODO: Make editable)" />
-                <TextBox x:Name="PreviewTextBox" IsReadOnly="true" Grid.Row="1" VerticalScrollBarVisibility="Visible" Background="Transparent" HorizontalScrollBarVisibility="Auto" />
+                <TextBox x:Name="PreviewTextBox" IsReadOnly="true" VerticalScrollBarVisibility="Visible" Background="Transparent" FontFamily="Courier New" HorizontalScrollBarVisibility="Auto" />
             </Grid>
         </Border>
         <StatusBar Grid.Row="3" Grid.ColumnSpan="3" MinHeight="18">
