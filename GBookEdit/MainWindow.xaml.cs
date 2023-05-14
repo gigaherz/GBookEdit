@@ -45,12 +45,6 @@ namespace GBookEdit.WPF
             Editor.Document.FontSize = FlowToBook.DefaultFontSize;
             Editor.Document.FontFamily = new FontFamily(new Uri("pack://application:,,,/"), "./Fonts/#Minecraft");
 
-            foreach (FontFamily fontFamily in Fonts.GetFontFamilies(new Uri("pack://application:,,,/"), "./Fonts/"))
-            {
-                // Perform action.
-                var t = fontFamily;
-            }
-
             previewTimer.Tick += UpdatePreview;
 
             LoadRecents();
